@@ -1,0 +1,9 @@
+# Environment variables
+.env
+
+# Secret JSON files
+service_account.json
+client_secret.json
+
+# Python cache
+__pycache__/
