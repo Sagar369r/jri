@@ -1,0 +1,32 @@
+questionId,questionText,optionA,optionB,optionC,optionD,correctAnswer,category,points
+JRI_01,"Percentage of marks (cumulative) in Intermediate (10+2)?","Less than 40%","40 to 60%","61 to 79%","80% or more",D,"Academic (Marks)",15
+JRI_02,"No. of external domain/technical certifications you have achieved?","1","2","More than 2","None",B,"Technical/Domain Expertise",10
+JRI_03,"How equipped are you to work on an Accounting Software or ERP ?","Not aware of any Accounting software","Partially equipped","Fully equipped","",C,"Technical/Domain Expertise",10
+JRI_04,"How do you rate yourself in advanced Ms-Excel?","Poor","Average","Good","Excellent",D,"Technical/Domain Expertise",10
+JRI_05,"How much do you know about Accounts Receivable & Accounts Payable ?","Nothing","Somewhat","Proficient","",C,"Technical/Domain Expertise",10
+JRI_06,"Do you have knowledge to create structured financial models used in business planning & valuation?","Yes","No","Learning still","",A,"Technical/Domain Expertise",10
+JRI_07,"Are you well aware of the Indian Taxation Framework (knowledge of direct/indirect taxes, filing returns, etc)","Yes","No","Knowledge not required","",A,"Technical/Domain Expertise",10
+JRI_08,"No. of Non-technical (life skills) certifications you are familiar with?","1","2","More than 2","None",B,"Non-Technical Certifications",5
+JRI_09,"How good are you in verbal communication in English?","Very Poor","Poor","Good","Very Good/Excellent",D,"Non-Technical Certifications",10
+JRI_10,"How good are you in written communication in English?","Very Poor","Poor","Good","Very Good/Excellent",D,"Non-Technical Certifications",10
+JRI_11,"Name a book that has inspired you the most, and Why ?","(Text Answer)","","","",A,"Non-Technical Certifications",10
+JRI_12,"Number of tools you are familiar with?","zero","1 to 3","4 to 6","More than 6",C,"Tools (Smart Work)",5
+JRI_13,"Have you ever taught your juniors or classmates?","No","Yes","Planning in future","",B,"Teaching Hours",5
+JRI_14,"Time spent on reading/watching Domain/Technology Magazines/Videos.","Not interested","Once in a while","every week","",C,"Magazine Hours",5
+JRI_15,"Number of internships you have completed or enrolled so far ?","0","1","2","More than 2",B,"Internship",8
+JRI_16,"No. of projects independently or as part of CSR completed and successful ?","1","2","More than 2","None",A,"Projects",5
+JRI_17,"Number of presentations have you given in Technical/Non Technical Events?","1","2","More than 2","None",B,"Presentations in events",5
+JRI_18,"Have you done any certification in Business Analytics ?","Yes","No","","",A,"Analytical Skills",5
+JRI_19,"How often do you practice LRWS? (Listening, Reading, Writing, Speaking).","Daily","Once in a while","Never","",A,"Expressiveness",5
+JRI_20,"Number of workshops/seminars you attended?","None","One","Two","More than Two",D,"Workshops, Seminars",3
+JRI_21,"Number of mock interviews you practiced and cleared successfully ?","1","2","More than 2","None",B,"Mock Interviews",8
+JRI_22,"How often do you make a to-do list and track tasks until completed ?","Daily","Once in a while","Do not maintain list","Trust your memory",A,"Task Monitoring",5
+JRI_23,"How many awards or merit scholarships have you won so far ?","1","2","More than 2","None",B,"Awards/Scholarships",5
+JRI_24,"What kind of goals one should always focus on ?","Short Term","Long Term","Both","Don’t follow goals",C,"Goals",5
+JRI_25,"Knowledge about AI and other technical tools is not really required in today's corporate world ?","True","False","Not sure","",B,"AI",5
+JRI_26,"You have knowledge of how many AI Tools ?","1","2","More than 2","None",C,"AI",5
+JRI_27,"How frequently are you engaged in a physical activity (like sports/gym/yoga/walking) ?","Daily","Once in a while","Never","",A,"Physicall Fitness",5
+JRI_28,"How frequently do you eat street food or fast food ?","Daily","Once in a while","Never","",B,"Physicall Fitness",10
+JRI_29,"Do you fall sick regularly?","Yes","No","","",B,"Physicall Fitness",10
+JRI_30,"How many indoor games do you actively participate in regularly ?","One","More than one","None","",B,"Mental Fitness",5
+JRI_31,"Which of these do you practice to remain calm ?","Meditation","Read books","Talk less","Focus on work/None",A,"Mental Fitness",10
