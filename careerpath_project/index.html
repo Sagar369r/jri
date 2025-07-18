@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JRI Career Development Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,61 +12,34 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body { 
-            font-family: 'Inter', sans-serif; /* Clear font for body text */
+            font-family: 'Inter', sans-serif;
             background-color: #2a2a2a;
-            /* Subtle Creeper background pattern */
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%233c3c3c' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
             color: #ffffff;
         }
-        h1, h2, h3, h4, .btn-pixel {
-             font-family: 'Pixelify Sans', sans-serif; /* Pixel font for headers and buttons */
-        }
-        .pixel-card {
-            background-color: rgba(198, 198, 198, 0.9); /* Semi-transparent light stone gray */
-            border: 3px solid #585858;
-            box-shadow: 6px 6px 0px #1a1a1a;
-            padding: 1.5rem;
-            color: #2a2a2a;
-        }
-        .btn-pixel {
-            padding: 0.75rem 1.5rem;
-            font-weight: 700;
-            text-align: center;
-            cursor: pointer;
-            border: 3px solid #2a2a2a;
-            box-shadow: inset -4px -4px 0px 0px rgba(0,0,0,0.25);
-            transition: all 0.1s ease-in-out;
-            text-transform: uppercase;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-        .btn-pixel:active {
-            box-shadow: inset 4px 4px 0px 0px rgba(0,0,0,0.25);
-            transform: translateY(4px);
-        }
+        h1, h2, h3, h4, .btn-pixel { font-family: 'Pixelify Sans', sans-serif; }
+        .pixel-card { background-color: rgba(198, 198, 198, 0.9); border: 3px solid #585858; box-shadow: 6px 6px 0px #1a1a1a; padding: 1.5rem; color: #2a2a2a; }
+        .btn-pixel { padding: 0.75rem 1.5rem; font-weight: 700; text-align: center; cursor: pointer; border: 3px solid #2a2a2a; box-shadow: inset -4px -4px 0px 0px rgba(0,0,0,0.25); transition: all 0.1s ease-in-out; text-transform: uppercase; display: inline-flex; align-items: center; gap: 0.75rem; }
+        .btn-pixel:active { box-shadow: inset 4px 4px 0px 0px rgba(0,0,0,0.25); transform: translateY(4px); }
         .btn-green { background-color: #76b865; color: white; }
         .btn-blue { background-color: #5a8bd1; color: white; }
         .btn-red { background-color: #c74a4a; color: white; }
         .btn-gray { background-color: #a9a9a9; color: #2a2a2a; }
-        
         .hidden { display: none; }
-
         .prose h3 { font-size: 1.75rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; border-bottom: 3px solid #585858; padding-bottom: 0.25rem;}
         .prose ul { list-style-type: none; padding-left: 0; }
         .prose li { margin-bottom: 0.5rem; position: relative; padding-left: 1.5rem; }
         .prose li::before { content: '>'; position: absolute; left: 0; top: 0; font-weight: 700; }
-        
-        .flashcard-pixel {
-            background: #e0e0e0;
-            border: 3px solid #585858;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        .flashcard-pixel h4, .flashcard-pixel p { word-wrap: break-word; }
+        .flashcard-pixel { background: #e0e0e0; border: 3px solid #585858; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; }
         .icon-pixel { width: 24px; height: 24px; image-rendering: pixelated; }
+        input[type="email"] {
+            border: 3px solid #585858;
+            padding: 0.5rem 1rem;
+            background-color: #e0e0e0;
+            color: #2a2a2a;
+            font-family: 'Pixelify Sans', sans-serif;
+            font-size: 1.25rem;
+        }
     </style>
 </head>
 <body class="text-lg">
@@ -79,15 +51,16 @@
         </header>
 
         <main id="main-content">
-            <!-- Login Section -->
-            <div id="login-section" class="pixel-card text-center max-w-md mx-auto">
-                <h2 class="text-3xl font-bold mb-4">Start Game</h2>
-                <p class="mb-6">Sign in to load your profile.</p>
-                <div id="google-signin-button-container" class="flex justify-center"><p>Loading...</p></div>
-                <p id="auth-error" class="text-red-500 mt-4"></p>
+            <div id="login-section" class="pixel-card text-center max-w-md mx-auto flex flex-col items-center">
+                <h2 class="text-3xl font-bold mb-4">Player Login</h2>
+                <form id="magic-link-form" class="w-full">
+                    <p class="mb-4">Enter your email to receive a magic login link.</p>
+                    <input type="email" id="email-input" placeholder="your.email@example.com" required class="w-full mb-4">
+                    <button type="submit" class="btn-pixel btn-green w-full justify-center">Send Magic Link</button>
+                </form>
+                <p id="auth-message" class="mt-4 font-bold"></p>
             </div>
 
-            <!-- Main Dashboard (Hidden by default) -->
             <div id="dashboard-section" class="hidden">
                 <div class="pixel-card mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div>
@@ -95,7 +68,6 @@
                         <p id="user-email" class="font-bold text-xl"></p>
                     </div>
                     <button id="logout-btn" class="btn-pixel btn-red w-full sm:w-auto">
-                        <!-- TNT Icon -->
                         <svg class="icon-pixel" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4h16v16H4V4z" fill="#FF5555"/><path d="M5 5h14v2H5V5zm0 12h14v2H5v-2zM9 7h6v10H9V7z" fill="#fff"/></svg>
                         Quit World
                     </button>
@@ -110,7 +82,7 @@
                             </h2>
                             <button id="start-assessment-btn" class="btn-pixel btn-green w-full text-xl justify-center">Start Assessment</button>
                             <div id="questions-container" class="mt-6 hidden"></div>
-                            <button id="submit-assessment-btn" class="btn-pixel btn-blue w-full mt-6 justify-center">Complete Quest</button>
+                            <button id="submit-assessment-btn" class="btn-pixel btn-blue w-full mt-6 justify-center hidden">Complete Quest</button>
                         </div>
 
                         <div id="results-area" class="pixel-card hidden">
@@ -127,7 +99,7 @@
 
                     <div class="space-y-8">
                         <div id="performance-dashboard-area" class="pixel-card">
-                             <h2 class="text-3xl font-bold mb-4 flex items-center gap-3">
+                               <h2 class="text-3xl font-bold mb-4 flex items-center gap-3">
                                 <svg class="icon-pixel" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 8h8v2H8V8zm0 4h8v2H8v-2z" fill="#FFC0CB"/><path d="M6 6h12v12H6V6z" fill="#FF81C0"/><path d="M8 4h2v2H8V4zm6 0h2v2h-2V4z" fill="#FFC0CB"/></svg>
                                 Player Stats
                             </h2>
@@ -146,8 +118,8 @@
                                 <svg class="icon-pixel" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6h12v12H6V6z" fill="#55FF55"/><path d="M10 10h4v6h-4v-6zM8 8h8v2H8V8zm0 8h8v2H8v-2z" fill="#000"/></svg>
                                 Scroll Analyzer
                             </h2>
-                            <p class="mb-4 text-sm">Upload your Resume Scroll (PDF) to analyze its stats.</p>
-                            <input type="file" id="resume-file-input" class="block w-full text-lg file:mr-4 file:p-2 file:border-2 file:border-gray-500 file:font-bold file:bg-gray-300 hover:file:bg-gray-400" accept=".pdf">
+                            <p class="mb-4 text-sm">Upload your Resume Scroll (PDF or DOCX) to analyze its stats.</p>
+                            <input type="file" id="resume-file-input" class="block w-full text-lg file:mr-4 file:p-2 file:border-2 file:border-gray-500 file:font-bold file:bg-gray-300 hover:file:bg-gray-400" accept=".pdf,.docx">
                             <button id="analyze-resume-btn" class="btn-pixel btn-blue w-full mt-4 justify-center">Analyze Scroll</button>
                             <p id="resume-error" class="text-red-500 mt-2 text-sm hidden"></p>
                             <div id="resume-analysis-container" class="prose max-w-none mt-4 border-t-4 border-gray-500 pt-4 hidden"></div>
@@ -159,13 +131,12 @@
     </div>
 
     <script>
-        // --- CONFIGURATION ---
-        // UPDATED: An empty string uses the current domain (your pythonanywhere address)
-        const API_BASE_URL = "https://suchithnarayan.pythonanywhere.com"; 
+        // --- CONFIG & STATE ---
+        const API_BASE_URL = "http://127.0.0.1:8000";
         let apiToken = null;
         let scoreChart = null;
 
-        // --- DOM ELEMENTS ---
+        // --- DOM ELEMENTS (CACHE THEM) ---
         const loginSection = document.getElementById('login-section');
         const dashboardSection = document.getElementById('dashboard-section');
         const userEmailEl = document.getElementById('user-email');
@@ -175,9 +146,10 @@
         const resultsArea = document.getElementById('results-area');
         const finalScoreEl = document.getElementById('final-score');
         const aiAnalysisEl = document.getElementById('ai-analysis');
-        const authErrorEl = document.getElementById('auth-error');
+        const authMessageEl = document.getElementById('auth-message');
         const logoutBtn = document.getElementById('logout-btn');
-        const googleBtnContainer = document.getElementById('google-signin-button-container');
+        const magicLinkForm = document.getElementById('magic-link-form');
+        const emailInput = document.getElementById('email-input');
         const viewPerformanceBtn = document.getElementById('view-performance-btn');
         const performanceChartContainer = document.getElementById('performance-chart-container');
         const highestScoreEl = document.getElementById('highest-score');
@@ -189,38 +161,65 @@
         const resumeAnalysisContainer = document.getElementById('resume-analysis-container');
         const resumeErrorEl = document.getElementById('resume-error');
         
-        function initializeGoogleSignIn() {
-            try {
-                const GOOGLE_CLIENT_ID = "338703388496-fhsc1ls4b50klg8dpkf66hurf1etkrg6.apps.googleusercontent.com";
-                if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.includes("YOUR_CLIENT_ID")) {
-                     throw new Error("Google Client ID is not set correctly in the HTML file.");
-                }
-                google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleCredentialResponse });
-                google.accounts.id.renderButton(googleBtnContainer, { theme: "outline", size: "large" });
-                authErrorEl.textContent = ''; 
-            } catch (error) {
-                authErrorEl.textContent = `Error loading application: ${error.message}`;
+        // --- INITIALIZATION ---
+        window.onload = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const magicToken = urlParams.get('token');
+            if (magicToken) {
+                loginWithToken(magicToken);
             }
-        }
-        window.onGoogleLibraryLoad = initializeGoogleSignIn;
+        };
 
-        async function handleCredentialResponse(response) {
-            authErrorEl.textContent = 'Authenticating...';
+        // --- AUTHENTICATION LOGIC ---
+        magicLinkForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = emailInput.value;
+            if (!email) return;
+
+            authMessageEl.textContent = 'Sending link...';
+            authMessageEl.classList.remove('text-red-500', 'text-green-600');
+            
             try {
-                const res = await fetch(`${API_BASE_URL}/auth/google`, {
+                const res = await fetch(`${API_BASE_URL}/auth/magic-link/request`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: response.credential })
+                    body: JSON.stringify({ email })
                 });
-                if (!res.ok) throw new Error((await res.json()).detail || 'Authentication failed.');
+                if (!res.ok) throw new Error('Could not send magic link. Please try again later.');
+                
+                authMessageEl.textContent = 'Magic link sent! Please check your terminal for the link.';
+                authMessageEl.classList.add('text-green-600');
+                magicLinkForm.reset();
+            } catch (error) {
+                authMessageEl.textContent = error.message;
+                authMessageEl.classList.add('text-red-500');
+            }
+        });
+
+        async function loginWithToken(token) {
+            loginSection.classList.remove('hidden');
+            authMessageEl.textContent = 'Verifying magic link...';
+            
+            try {
+                const res = await fetch(`${API_BASE_URL}/auth/magic-link/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token })
+                });
+                if (!res.ok) throw new Error((await res.json()).detail || 'Invalid or expired magic link.');
+                
                 const data = await res.json();
                 apiToken = data.access_token;
+
+                authMessageEl.textContent = 'Login successful! Loading dashboard...';
                 await fetchUserProfile();
                 loginSection.classList.add('hidden');
                 dashboardSection.classList.remove('hidden');
-                authErrorEl.textContent = '';
+                window.history.replaceState({}, document.title, "/"); // Clean URL
             } catch (error) {
-                authErrorEl.textContent = `Login failed: ${error.message}`;
+                authMessageEl.textContent = `Login failed: ${error.message}`;
+                authMessageEl.classList.add('text-red-500');
+                window.history.replaceState({}, document.title, "/");
             }
         }
 
@@ -242,8 +241,13 @@
             apiToken = null;
             dashboardSection.classList.add('hidden');
             loginSection.classList.remove('hidden');
+            authMessageEl.textContent = '';
+            resultsArea.classList.add('hidden');
+            coursesArea.classList.add('hidden');
+            performanceChartContainer.classList.add('hidden');
         });
 
+        // --- DASHBOARD LOGIC ---
         startAssessmentBtn.addEventListener('click', async () => {
             startAssessmentBtn.textContent = 'Loading...';
             startAssessmentBtn.disabled = true;
@@ -280,8 +284,8 @@
                         optionEl.innerHTML = `<label class="flex items-center p-2 hover:bg-gray-400 cursor-pointer text-lg"><input type="radio" name="question-${q.id}" value="${opt.id}" class="mr-3 w-5 h-5" data-question-id="${q.id}"><span>${opt.text}</span></label>`;
                         optionsList.appendChild(optionEl);
                     });
-                } else { 
-                    const opt = q.options[0]; 
+                } else if (validOptions.length === 1) { 
+                    const opt = validOptions[0]; 
                     const inputEl = document.createElement('div');
                     inputEl.innerHTML = `<input type="text" placeholder="Your answer..." class="w-full p-2 bg-white border-2 border-gray-500 text-black text-lg" name="question-${q.id}" data-option-id="${opt.id}" data-question-id="${q.id}">`;
                     optionsList.appendChild(inputEl);
@@ -292,11 +296,11 @@
         }
 
         submitAssessmentBtn.addEventListener('click', async () => {
-            const radioAnswers = Array.from(document.querySelectorAll('input[type="radio"]:checked')).map(input => ({
+            const answers = Array.from(document.querySelectorAll('input[type="radio"]:checked')).map(input => ({
                 question_id: parseInt(input.dataset.questionId),
                 selected_option_id: parseInt(input.value)
             }));
-            const answers = radioAnswers;
+            
             if (answers.length === 0) return alert('Please answer at least one question.');
 
             submitAssessmentBtn.textContent = 'Analyzing...';
@@ -325,7 +329,12 @@
             aiAnalysisEl.innerHTML = marked.parse(result.analysis || "No analysis provided.");
             resultsArea.classList.remove('hidden');
             if (result.course_suggestions) {
-                renderCourseSuggestions(JSON.parse(result.course_suggestions));
+                try {
+                    renderCourseSuggestions(JSON.parse(result.course_suggestions));
+                } catch(e) {
+                    console.error("Could not parse course suggestions:", e);
+                    coursesArea.classList.add('hidden');
+                }
             }
         }
 
@@ -338,10 +347,13 @@
             suggestions.forEach(course => {
                 const card = document.createElement('div');
                 card.className = 'flashcard-pixel';
+                const title = course.course_name || course.title || "Untitled Course";
+                const platform = course.platform || "Unknown Platform";
+                const reason = course.reason || course.description || "No description available.";
                 card.innerHTML = `
-                    <h4 class="font-bold text-xl mb-2">${course.title}</h4>
-                    <p class="text-sm text-gray-600 mb-2 font-bold">${course.platform}</p>
-                    <p class="text-gray-800 text-base">${course.description}</p>
+                    <h4 class="font-bold text-xl mb-2">${title}</h4>
+                    <p class="text-sm text-gray-600 mb-2 font-bold">${platform}</p>
+                    <p class="text-gray-800 text-base">${reason}</p>
                 `;
                 courseSuggestionsContainer.appendChild(card);
             });
@@ -360,18 +372,33 @@
         viewPerformanceBtn.addEventListener('click', async () => {
             const isHidden = performanceChartContainer.classList.toggle('hidden');
             if (isHidden) return;
+            
+            viewPerformanceBtn.disabled = true;
+            performanceChartContainer.innerHTML = '<p>Loading stats...</p>';
             const history = await fetchHistory();
-            if (history && history.length > 0) renderPerformanceDashboard(history);
+            if (history && history.length > 0) {
+                performanceChartContainer.innerHTML = `
+                    <div class="grid grid-cols-2 gap-4 mb-4 text-center">
+                        <div class="p-4 bg-gray-300 border-2 border-gray-500"><p class="text-gray-600">High Score</p><p id="highest-score" class="text-3xl font-bold"></p></div>
+                        <div class="p-4 bg-gray-300 border-2 border-gray-500"><p class="text-gray-600">Avg Score</p><p id="average-score" class="text-3xl font-bold"></p></div>
+                    </div>
+                    <canvas id="score-chart"></canvas>
+                `;
+                renderPerformanceDashboard(history);
+            }
             else if (history) performanceChartContainer.innerHTML = '<p>Complete an assessment to see your stats.</p>';
             else performanceChartContainer.innerHTML = `<p class="text-red-500">Failed to load data.</p>`;
+            viewPerformanceBtn.disabled = false;
         });
 
         function renderPerformanceDashboard(history) {
-            const sortedHistory = history.slice().reverse();
+            const sortedHistory = history.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
             const labels = sortedHistory.map(item => new Date(item.created_at).toLocaleDateString());
             const scores = sortedHistory.map(item => item.score);
-            highestScoreEl.textContent = Math.max(...scores);
-            averageScoreEl.textContent = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
+            
+            document.getElementById('highest-score').textContent = Math.max(...scores);
+            document.getElementById('average-score').textContent = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
+
             const ctx = document.getElementById('score-chart').getContext('2d');
             if (scoreChart) scoreChart.destroy();
             scoreChart = new Chart(ctx, {
@@ -393,8 +420,17 @@
 
         analyzeResumeBtn.addEventListener('click', async () => {
             const file = resumeFileInput.files[0];
-            if (!file) return alert('Please select a PDF file first.');
-            if (file.type !== 'application/pdf') return alert('Only PDF files are allowed.');
+            if (!file) {
+                alert('Please select a file first.');
+                return;
+            }
+            
+            const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            if (!allowedTypes.includes(file.type)) {
+                alert('Only PDF and DOCX files are allowed.');
+                return;
+            }
+
             const formData = new FormData();
             formData.append('file', file);
             analyzeResumeBtn.textContent = 'Analyzing...';
@@ -423,5 +459,3 @@
     </script>
 </body>
 </html>
-```
-

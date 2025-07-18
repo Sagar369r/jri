@@ -1,0 +1,20 @@
+requirements.txt
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic
+python-jose[cryptography]
+passlib[bcrypt]
+pandas
+python-dotenv
+google-auth
+psycopg2-binary
+google-generativeai
+python-multipart
+PyPDF2
+gunicorn
+python-docx
+
+NEW: Libraries for Google Drive API
+google-api-python-client
+google-auth-oauthlib
