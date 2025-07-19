@@ -53,7 +53,7 @@ async def get_current_user(token: str = Depends(auth.oauth2_scheme), db: Session
     return user
 
 # --- API ENDPOINTS ---
-# NOTE: The "/api" prefixes are REMOVED. The full URL is handled by the frontend.
+# NOTE: The "/api" prefixes are not needed here because this is a dedicated backend.
 
 @app.post("/auth/magic-link/request", status_code=status.HTTP_202_ACCEPTED)
 async def request_magic_link(request: schemas.MagicLinkRequest, db: Session = Depends(get_db)):
