@@ -6,10 +6,12 @@ from typing import List
 import os
 import io
 import json
+import re
 from datetime import datetime
 
 # Import all local modules
-import crud, models, schemas, auth, ai_analysis, gdrive_service, email_service, user_logger
+import crud, models, schemas, auth, ai_analysis, email_service, user_logger
+import cloudinary_service # <-- IMPORT THE NEW CLOUDINARY SERVICE
 from database import SessionLocal, engine
 import load_database
 
@@ -49,7 +51,6 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    # FIXED: Using a raw string r"..." to prevent SyntaxWarning
     allow_origin_regex=r"https://jri-omega-.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
@@ -79,6 +80,68 @@ async def get_current_user(token: str = Depends(auth.oauth2_scheme), db: Session
     return user
 
 # --- API ENDPOINTS ---
+
+@app.post("/users/me/resume", response_model=schemas.User, tags=["Users"])
+async def upload_and_analyze_resume(
+    current_user: schemas.User = Depends(get_current_user),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
+    """
+    UPDATED: This endpoint now uploads resumes to Cloudinary instead of Google Drive.
+    """
+    contents = await file.read()
+    filename = file.filename
+    text = ""
+    
+    if filename.endswith(".pdf"):
+        try:
+            import PyPDF2
+            pdf_reader = PyPDF2.PdfReader(io.BytesIO(contents))
+            for page in pdf_reader.pages:
+                text += page.extract_text() or ""
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Could not read PDF file: {e}")
+    elif filename.endswith(".docx"):
+        try:
+            import docx
+            doc = docx.Document(io.BytesIO(contents))
+            for para in doc.paragraphs:
+                text += para.text + "\n"
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=f"Could not read DOCX file: {e}")
+    else:
+        raise HTTPException(status_code=400, detail="Unsupported file type. Please upload a .pdf or .docx file.")
+
+    if not text.strip():
+        raise HTTPException(status_code=400, detail="Could not extract any text from the uploaded file.")
+
+    analysis_results = await ai_analysis.analyze_resume_text(text)
+    
+    sanitized_text = text.replace('\x00', '')
+    sanitized_analysis = analysis_results.replace('\x00', '')
+
+    try:
+        # --- UPDATED LOGIC ---
+        # Call the Cloudinary upload function
+        file_url = cloudinary_service.upload_file_to_cloudinary(
+            filename=filename,
+            file_contents=contents,
+            mimetype=file.content_type
+        )
+        print(f"Successfully uploaded {filename} to Cloudinary.")
+        # You could optionally save the file_url to the user's profile here if needed.
+        # For example: crud.update_user_resume_url(db, user_id=current_user.id, url=file_url)
+        # --- END OF UPDATED LOGIC ---
+    except Exception as e:
+        print(f"A Cloudinary API error occurred: {e}")
+        # We don't raise an exception here because the core analysis succeeded.
+        # The user doesn't need to know if the cloud backup failed.
+
+    return crud.update_user_resume_data(db, user_id=current_user.id, text=sanitized_text, analysis=sanitized_analysis)
+
+
+# (The rest of your main.py file remains the same)
 @app.get("/", tags=["Health Check"])
 def read_root():
     return {"status": "ok", "message": "Welcome to JRI Career World API"}
@@ -119,51 +182,6 @@ async def login_with_magic_link(request: schemas.MagicLinkLogin, db: Session = D
 async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
     return current_user
 
-@app.post("/users/me/resume", response_model=schemas.User, tags=["Users"])
-async def upload_and_analyze_resume(
-    current_user: schemas.User = Depends(get_current_user),
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db)
-):
-    contents = await file.read()
-    filename = file.filename
-    text = ""
-    
-    if filename.endswith(".pdf"):
-        try:
-            import PyPDF2
-            pdf_reader = PyPDF2.PdfReader(io.BytesIO(contents))
-            for page in pdf_reader.pages:
-                text += page.extract_text() or ""
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Could not read PDF file: {e}")
-    elif filename.endswith(".docx"):
-        try:
-            import docx
-            doc = docx.Document(io.BytesIO(contents))
-            for para in doc.paragraphs:
-                text += para.text + "\n"
-        except Exception as e:
-            raise HTTPException(status_code=400, detail=f"Could not read DOCX file: {e}")
-    else:
-        raise HTTPException(status_code=400, detail="Unsupported file type. Please upload a .pdf or .docx file.")
-
-    if not text.strip():
-        raise HTTPException(status_code=400, detail="Could not extract any text from the uploaded file.")
-
-    analysis_results = await ai_analysis.analyze_resume_text(text)
-    
-    sanitized_text = text.replace('\x00', '')
-    sanitized_analysis = analysis_results.replace('\x00', '')
-
-    try:
-        gdrive_service.upload_file_to_drive(filename, contents, file.content_type)
-        print(f"Successfully attempted to upload {filename} to Google Drive.")
-    except Exception as e:
-        print(f"A Google Drive API error occurred: {e}")
-
-    return crud.update_user_resume_data(db, user_id=current_user.id, text=sanitized_text, analysis=sanitized_analysis)
-
 @app.get("/assessment/questions", response_model=List[schemas.Question], tags=["Assessment"])
 def read_questions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_questions(db, skip=skip, limit=limit)
@@ -198,10 +216,26 @@ async def submit_assessment(
 
     ai_feedback = await ai_analysis.generate_assessment_feedback(categories_summary, incorrect_answers)
     
-    analysis_text = ai_feedback.get("performance_report", "Analysis not available.")
-    suggestions_json = json.dumps(ai_feedback.get("course_suggestions", []))
-    
-    sanitized_analysis_text = analysis_text.replace('\x00', '')
+    sanitized_analysis_text = "Analysis not available."
+    sanitized_suggestions = []
+
+    analysis_text = ai_feedback.get("performance_report")
+    if isinstance(analysis_text, str):
+        sanitized_analysis_text = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', analysis_text)
+
+    course_suggestions = ai_feedback.get("course_suggestions")
+    if isinstance(course_suggestions, list):
+        for course in course_suggestions:
+            if isinstance(course, dict):
+                sanitized_course = {}
+                for key, value in course.items():
+                    if isinstance(value, str):
+                        sanitized_course[key] = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', value)
+                    else:
+                        sanitized_course[key] = value
+                sanitized_suggestions.append(sanitized_course)
+
+    suggestions_json = json.dumps(sanitized_suggestions)
 
     email_service.send_assessment_report(
         email=current_user.email, 
@@ -221,4 +255,3 @@ async def submit_assessment(
 @app.get("/assessment/history", response_model=List[schemas.Assessment], tags=["Assessment"])
 def get_assessment_history(db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     return db.query(models.Assessment).filter(models.Assessment.owner_id == current_user.id).all()
-
