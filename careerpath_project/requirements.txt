@@ -13,3 +13,4 @@ python-docx
 email-validator
 google.generativeai
 python-jose
+python-multipart
