@@ -2,29 +2,24 @@
 from fastapi import FastAPI, Depends, HTTPException, status, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from typing import List, Optional
-import os
-from dotenv import load_dotenv, find_dotenv
-import PyPDF2
-import docx
-import io
-import json
+from typing import List
 
-# Import all local modules
-import crud, models, schemas, auth, ai_analysis, gdrive_service, email_service, user_logger
+# Import local modules
+import crud, models, schemas, ai_analysis, gdrive_service, email_service
 from database import SessionLocal, engine
+# ✅ Import the router from your updated auth.py file
+from auth import router as auth_router, get_current_user
 
-load_dotenv(find_dotenv())
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="JRI Career World API")
 
-# CORS Middleware to allow ONLY your Vercel frontend to connect
+# CORS Middleware to allow your Vercel frontend(s) to connect
 origins = [
-    "https://jri-l5ci.vercel.app",
     "https://jri-omega.vercel.app",
-    "https://jri-uz4s.onrender.com",# Added your newer frontend URL
-    "null" 
+    "https://jri-l5ci.vercel.app",
+    "https://jri-uz4s.onrender.com",
+    "null"
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -34,6 +29,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ✅ Include the authentication router as you specified.
+# This adds the "/magic-link/request" and "/magic-link/login" routes
+# with the prefix "/api/auth".
+app.include_router(auth_router, prefix="/api/auth", tags=["Authentication"])
+
+
 # --- Dependencies ---
 def get_db():
     db = SessionLocal()
@@ -42,54 +43,19 @@ def get_db():
     finally:
         db.close()
 
-async def get_current_user(token: str = Depends(auth.oauth2_scheme), db: Session = Depends(get_db)):
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
-    email = auth.verify_access_token(token, credentials_exception)
-    user = crud.get_user_by_email(db, email=email)
-    if user is None:
-        raise credentials_exception
-    return user
-
-# --- Root Route ---
-# ✅ FIX: Added a root GET endpoint to handle health checks and prevent 404 on the base URL.
+# --- Root Route for Health Check ---
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the JRI Career World API!"}
 
 
-# --- API ENDPOINTS ---
+# --- All OTHER API Endpoints remain here ---
 
-@app.post("/auth/magic-link/request", status_code=status.HTTP_202_ACCEPTED)
-async def request_magic_link(request: schemas.MagicLinkRequest, db: Session = Depends(get_db)):
-    user = crud.get_or_create_user(db, email=request.email)
-    user_logger.log_user_email(user.email)
-    plain_token, token_hash = auth.create_magic_link_token()
-    crud.create_magic_token(db, email=request.email, token_hash=token_hash)
-    email_service.send_magic_link(email=request.email, token=plain_token)
-    return {"message": "If an account with this email exists, a magic link has been sent."}
-
-@app.post("/auth/magic-link/login", response_model=schemas.Token)
-async def login_with_magic_link(request: schemas.MagicLinkLogin, db: Session = Depends(get_db)):
-    all_tokens = db.query(models.MagicToken).filter(models.MagicToken.is_used == False).all()
-    db_token_record = None
-    for token_record in all_tokens:
-        if auth.verify_magic_link_token(request.token, token_record.token_hash):
-            db_token_record = crud.use_magic_token(db, token_hash=token_record.token_hash)
-            break
-    if not db_token_record:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired magic link.")
-    access_token = auth.create_access_token(data={"sub": db_token_record.email})
-    return {"access_token": access_token, "token_type": "bearer"}
-
-@app.get("/users/me", response_model=schemas.User)
+@app.get("/api/users/me", response_model=schemas.User)
 async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
     return current_user
 
-@app.post("/users/me/resume", response_model=schemas.User)
+@app.post("/api/users/me/resume", response_model=schemas.User)
 async def upload_and_analyze_resume(current_user: schemas.User = Depends(get_current_user), file: UploadFile = File(...), db: Session = Depends(get_db)):
     contents = await file.read()
     filename = file.filename
@@ -112,11 +78,11 @@ async def upload_and_analyze_resume(current_user: schemas.User = Depends(get_cur
         print(f"A Google Drive API error occurred: {e}")
     return crud.update_user_resume_data(db, user_id=current_user.id, text=sanitized_text, analysis=sanitized_analysis)
 
-@app.get("/assessment/questions", response_model=List[schemas.Question])
+@app.get("/api/assessment/questions", response_model=List[schemas.Question])
 def read_questions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_questions(db, skip=skip, limit=limit)
 
-@app.post("/assessment/submit", response_model=schemas.Assessment)
+@app.post("/api/assessment/submit", response_model=schemas.Assessment)
 async def submit_assessment(assessment_data: schemas.AssessmentSubmit, db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     total_score, categories_summary, incorrect_answers = 0, {}, []
     for answer_data in assessment_data.answers:
@@ -138,6 +104,6 @@ async def submit_assessment(assessment_data: schemas.AssessmentSubmit, db: Sessi
     email_service.send_assessment_report(email=current_user.email, report_markdown=sanitized_analysis_text, score=total_score)
     return crud.create_assessment(db=db, user_id=current_user.id, score=total_score, answers=assessment_data.answers, analysis=sanitized_analysis_text, suggestions=suggestions_json)
 
-@app.get("/assessment/history", response_model=List[schemas.Assessment])
+@app.get("/api/assessment/history", response_model=List[schemas.Assessment])
 def get_assessment_history(db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     return db.query(models.Assessment).filter(models.Assessment.owner_id == current_user.id).all()
