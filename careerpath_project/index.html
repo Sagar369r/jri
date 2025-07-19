@@ -4,9 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JRI Career Development Dashboard</title>
-    
-    <link rel="icon" href="/favicon.ico">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -14,16 +11,45 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        body { 
+        body {
             font-family: 'Inter', sans-serif;
             background-color: #2a2a2a;
             background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%233c3c3c' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
             color: #ffffff;
         }
-        h1, h2, h3, h4, .btn-pixel { font-family: 'Pixelify Sans', sans-serif; }
-        .pixel-card { background-color: rgba(198, 198, 198, 0.9); border: 3px solid #585858; box-shadow: 6px 6px 0px #1a1a1a; padding: 1.5rem; color: #2a2a2a; }
-        .btn-pixel { padding: 0.75rem 1.5rem; font-weight: 700; text-align: center; cursor: pointer; border: 3px solid #2a2a2a; box-shadow: inset -4px -4px 0px 0px rgba(0,0,0,0.25); transition: all 0.1s ease-in-out; text-transform: uppercase; display: inline-flex; align-items: center; gap: 0.75rem; }
-        .btn-pixel:active { box-shadow: inset 4px 4px 0px 0px rgba(0,0,0,0.25); transform: translateY(4px); }
+        h1, h2, h3, h4, .btn-pixel {
+            font-family: 'Pixelify Sans', sans-serif;
+        }
+        .pixel-card {
+            background-color: rgba(198, 198, 198, 0.9);
+            border: 3px solid #585858;
+            box-shadow: 6px 6px 0px #1a1a1a;
+            padding: 1.5rem;
+            color: #2a2a2a;
+        }
+        .btn-pixel {
+            padding: 0.75rem 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+            border: 3px solid #2a2a2a;
+            box-shadow: inset -4px -4px 0px 0px rgba(0,0,0,0.25);
+            transition: all 0.1s ease-in-out;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+        .btn-pixel:disabled {
+            cursor: not-allowed;
+            background-color: #999;
+            opacity: 0.7;
+        }
+        .btn-pixel:active:not(:disabled) {
+            box-shadow: inset 4px 4px 0px 0px rgba(0,0,0,0.25);
+            transform: translateY(4px);
+        }
         .btn-green { background-color: #76b865; color: white; }
         .btn-blue { background-color: #5a8bd1; color: white; }
         .btn-red { background-color: #c74a4a; color: white; }
@@ -33,16 +59,31 @@
         .prose ul { list-style-type: none; padding-left: 0; }
         .prose li { margin-bottom: 0.5rem; position: relative; padding-left: 1.5rem; }
         .prose li::before { content: '>'; position: absolute; left: 0; top: 0; font-weight: 700; }
-        .flashcard-pixel { background: #e0e0e0; border: 3px solid #585858; padding: 1rem; display: flex; flex-direction: column; justify-content: space-between; }
-        .icon-pixel { width: 24px; height: 24px; image-rendering: pixelated; }
-        input[type="email"] {
+        .flashcard-pixel {
+            background: #e0e0e0;
             border: 3px solid #585858;
-            padding: 0.5rem 1rem;
-            background-color: #e0e0e0;
-            color: #2a2a2a;
-            font-family: 'Pixelify Sans', sans-serif;
-            font-size: 1.25rem;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }
+        .flashcard-pixel h4, .flashcard-pixel p { word-wrap: break-word; }
+        .icon-pixel { width: 24px; height: 24px; image-rendering: pixelated; }
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            color: white;
+            z-index: 1000;
+            font-family: 'Pixelify Sans', sans-serif;
+            border: 3px solid #2a2a2a;
+            box-shadow: 6px 6px 0px #1a1a1a;
+        }
+        .message-box.success { background-color: #76b865; }
+        .message-box.error { background-color: #c74a4a; }
     </style>
 </head>
 <body class="text-lg">
@@ -54,16 +95,18 @@
         </header>
 
         <main id="main-content">
-            <div id="login-section" class="pixel-card text-center max-w-md mx-auto flex flex-col items-center">
-                <h2 class="text-3xl font-bold mb-4">Player Login</h2>
-                <form id="magic-link-form" class="w-full">
-                    <p class="mb-4">Enter your email to receive a magic login link.</p>
-                    <input type="email" id="email-input" placeholder="your.email@example.com" required class="w-full mb-4">
-                    <button type="submit" class="btn-pixel btn-green w-full justify-center">Send Magic Link</button>
-                </form>
-                <p id="auth-message" class="mt-4 font-bold"></p>
+            <!-- Login Section -->
+            <div id="login-section" class="pixel-card max-w-md mx-auto">
+                <h2 class="text-3xl font-bold mb-4 text-center">Start Game</h2>
+                <p class="mb-6 text-center">Enter your email to receive a magic login link.</p>
+                <div class="space-y-4">
+                    <input type="email" id="email-input" placeholder="player@email.com" class="w-full p-3 border-2 border-gray-500 text-black text-lg">
+                    <button id="request-magic-link-btn" class="btn-pixel btn-green w-full">Send Magic Link</button>
+                </div>
+                <p id="auth-message" class="text-center mt-4 font-bold"></p>
             </div>
 
+            <!-- Main Dashboard (Hidden by default) -->
             <div id="dashboard-section" class="hidden">
                 <div class="pixel-card mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div>
@@ -83,9 +126,9 @@
                                 <svg class="icon-pixel" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 2l-8 8-4-4-6 6v8h8l6-6-4-4 8-8z" fill="#55FFFF"/><path d="M16 4l-6 6-4-4-4 4v4h4l4-4 6-6h-4z" fill="#00AAAA"/></svg>
                                 New Quest
                             </h2>
-                            <button id="start-assessment-btn" class="btn-pixel btn-green w-full text-xl justify-center">Start Assessment</button>
+                            <button id="start-assessment-btn" class="btn-pixel btn-green w-full text-xl">Start Assessment</button>
                             <div id="questions-container" class="mt-6 hidden"></div>
-                            <button id="submit-assessment-btn" class="btn-pixel btn-blue w-full mt-6 justify-center hidden">Complete Quest</button>
+                            <button id="submit-assessment-btn" class="btn-pixel btn-blue w-full mt-6 hidden">Complete Quest</button>
                         </div>
 
                         <div id="results-area" class="pixel-card hidden">
@@ -101,31 +144,31 @@
                     </div>
 
                     <div class="space-y-8">
-                        <div id="performance-dashboard-area" class="pixel-card">
-                                <h2 class="text-3xl font-bold mb-4 flex items-center gap-3">
-                                 <svg class="icon-pixel" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 8h8v2H8V8zm0 4h8v2H8v-2z" fill="#FFC0CB"/><path d="M6 6h12v12H6V6z" fill="#FF81C0"/><path d="M8 4h2v2H8V4zm6 0h2v2h-2V4z" fill="#FFC0CB"/></svg>
-                                 Player Stats
-                                </h2>
-                            <button id="view-performance-btn" class="btn-pixel btn-gray w-full justify-center">View Dashboard</button>
-                            <div id="performance-chart-container" class="mt-6 hidden">
-                                <div class="grid grid-cols-2 gap-4 mb-4 text-center">
-                                    <div class="p-4 bg-gray-300 border-2 border-gray-500"><p class="text-gray-600">High Score</p><p id="highest-score" class="text-3xl font-bold"></p></div>
-                                    <div class="p-4 bg-gray-300 border-2 border-gray-500"><p class="text-gray-600">Avg Score</p><p id="average-score" class="text-3xl font-bold"></p></div>
-                                </div>
-                                <canvas id="score-chart"></canvas>
-                            </div>
-                        </div>
-
-                        <div id="resume-analyzer-area" class="pixel-card">
+                         <div id="resume-analyzer-area" class="pixel-card">
                             <h2 class="text-3xl font-bold mb-4 flex items-center gap-3">
                                 <svg class="icon-pixel" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6h12v12H6V6z" fill="#55FF55"/><path d="M10 10h4v6h-4v-6zM8 8h8v2H8V8zm0 8h8v2H8v-2z" fill="#000"/></svg>
                                 Scroll Analyzer
                             </h2>
                             <p class="mb-4 text-sm">Upload your Resume Scroll (PDF or DOCX) to analyze its stats.</p>
                             <input type="file" id="resume-file-input" class="block w-full text-lg file:mr-4 file:p-2 file:border-2 file:border-gray-500 file:font-bold file:bg-gray-300 hover:file:bg-gray-400" accept=".pdf,.docx">
-                            <button id="analyze-resume-btn" class="btn-pixel btn-blue w-full mt-4 justify-center">Analyze Scroll</button>
+                            <button id="analyze-resume-btn" class="btn-pixel btn-blue w-full mt-4">Analyze Scroll</button>
                             <p id="resume-error" class="text-red-500 mt-2 text-sm hidden"></p>
                             <div id="resume-analysis-container" class="prose max-w-none mt-4 border-t-4 border-gray-500 pt-4 hidden"></div>
+                        </div>
+                        
+                        <div id="performance-dashboard-area" class="pixel-card">
+                               <h2 class="text-3xl font-bold mb-4 flex items-center gap-3">
+                                <svg class="icon-pixel" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 8h8v2H8V8zm0 4h8v2H8v-2z" fill="#FFC0CB"/><path d="M6 6h12v12H6V6z" fill="#FF81C0"/><path d="M8 4h2v2H8V4zm6 0h2v2h-2V4z" fill="#FFC0CB"/></svg>
+                                Player Stats
+                            </h2>
+                            <button id="view-performance-btn" class="btn-pixel btn-gray w-full">View Dashboard</button>
+                            <div id="performance-chart-container" class="mt-6 hidden">
+                                <div class="grid grid-cols-2 gap-4 mb-4 text-center">
+                                    <div class="p-4 bg-gray-300 border-2 border-gray-500"><p class="text-gray-600">High Score</p><p id="highest-score" class="text-3xl font-bold">0</p></div>
+                                    <div class="p-4 bg-gray-300 border-2 border-gray-500"><p class="text-gray-600">Avg Score</p><p id="average-score" class="text-3xl font-bold">0</p></div>
+                                </div>
+                                <canvas id="score-chart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -134,13 +177,12 @@
     </div>
 
     <script>
-        // ✅ The API_BASE_URL is a relative path, which works with the vercel.json setup.
-        const API_BASE_URL = "https://jri-omega.vercel.app"; 
-
+        // --- CONFIGURATION ---
+        const API_BASE_URL = "/api"; // Use relative path for Vercel rewrites
         let apiToken = null;
         let scoreChart = null;
 
-        // --- DOM ELEMENTS (CACHE THEM) ---
+        // --- DOM ELEMENTS ---
         const loginSection = document.getElementById('login-section');
         const dashboardSection = document.getElementById('dashboard-section');
         const userEmailEl = document.getElementById('user-email');
@@ -150,10 +192,7 @@
         const resultsArea = document.getElementById('results-area');
         const finalScoreEl = document.getElementById('final-score');
         const aiAnalysisEl = document.getElementById('ai-analysis');
-        const authMessageEl = document.getElementById('auth-message');
         const logoutBtn = document.getElementById('logout-btn');
-        const magicLinkForm = document.getElementById('magic-link-form');
-        const emailInput = document.getElementById('email-input');
         const viewPerformanceBtn = document.getElementById('view-performance-btn');
         const performanceChartContainer = document.getElementById('performance-chart-container');
         const highestScoreEl = document.getElementById('highest-score');
@@ -164,112 +203,153 @@
         const analyzeResumeBtn = document.getElementById('analyze-resume-btn');
         const resumeAnalysisContainer = document.getElementById('resume-analysis-container');
         const resumeErrorEl = document.getElementById('resume-error');
-        
-        // --- INITIALIZATION ---
-        window.onload = () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const magicToken = urlParams.get('token');
-            if (magicToken) {
-                loginWithToken(magicToken);
+        const emailInput = document.getElementById('email-input');
+        const requestMagicLinkBtn = document.getElementById('request-magic-link-btn');
+        const authMessageEl = document.getElementById('auth-message');
+
+        // --- UTILITY FUNCTIONS ---
+        function showMessage(message, type = 'success') {
+            const existingMessageBox = document.querySelector('.message-box');
+            if (existingMessageBox) {
+                existingMessageBox.remove();
             }
-        };
 
-        // --- AUTHENTICATION LOGIC ---
-        magicLinkForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = emailInput.value;
-            if (!email) return;
+            const messageBox = document.createElement('div');
+            messageBox.className = `message-box ${type}`;
+            messageBox.textContent = message;
+            document.body.appendChild(messageBox);
+            setTimeout(() => messageBox.remove(), 4000);
+        }
 
-            authMessageEl.textContent = 'Sending link...';
-            authMessageEl.classList.remove('text-red-500', 'text-green-600');
-            
+        async function apiFetch(endpoint, options = {}) {
+            const headers = { ...options.headers };
+            if (apiToken) {
+                headers['Authorization'] = `Bearer ${apiToken}`;
+            }
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+                throw new Error(errorData.detail || 'An unknown error occurred.');
+            }
+            // Handle responses that might not have a body (e.g., 202 Accepted)
+            if (response.status === 202 || response.status === 204) {
+                return null;
+            }
+            return response.json();
+        }
+
+        // --- AUTHENTICATION FLOW ---
+        requestMagicLinkBtn.addEventListener('click', async () => {
+            const email = emailInput.value.trim();
+            if (!email) {
+                showMessage('Please enter a valid email address.', 'error');
+                return;
+            }
+            requestMagicLinkBtn.disabled = true;
+            requestMagicLinkBtn.textContent = 'Sending...';
+            authMessageEl.textContent = '';
             try {
-                // ✅ All fetch calls now correctly use the /api/ prefix.
-                const res = await fetch(`${API_BASE_URL}/api/auth/magic-link/request`, {
+                await apiFetch('/auth/magic-link/request', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
                 });
-                if (!res.ok) throw new Error('Could not send magic link. Please try again later.');
-                
-                authMessageEl.textContent = 'Magic link sent! Please check your email.';
-                authMessageEl.classList.add('text-green-600');
-                magicLinkForm.reset();
+                showMessage('Magic link sent! Please check your email.');
+                authMessageEl.textContent = 'A magic link has been sent to your email. Click it to log in.';
             } catch (error) {
-                authMessageEl.textContent = error.message;
-                authMessageEl.classList.add('text-red-500');
+                showMessage(`Error: ${error.message}`, 'error');
+                authMessageEl.textContent = `Failed to send link: ${error.message}`;
+            } finally {
+                requestMagicLinkBtn.disabled = false;
+                requestMagicLinkBtn.textContent = 'Send Magic Link';
             }
         });
 
-        async function loginWithToken(token) {
-            loginSection.classList.remove('hidden');
-            authMessageEl.textContent = 'Verifying magic link...';
-            
+        async function loginWithMagicToken(token) {
             try {
-                const res = await fetch(`${API_BASE_URL}/api/auth/magic-link/login`, {
+                const data = await apiFetch('/auth/magic-link/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ token })
                 });
-                if (!res.ok) throw new Error((await res.json()).detail || 'Invalid or expired magic link.');
-                
-                const data = await res.json();
                 apiToken = data.access_token;
-
-                authMessageEl.textContent = 'Login successful! Loading dashboard...';
-                await fetchUserProfile();
-                loginSection.classList.add('hidden');
-                dashboardSection.classList.remove('hidden');
-                window.history.replaceState({}, document.title, "/"); // Clean URL
+                localStorage.setItem('jri_api_token', apiToken);
+                await initializeDashboard();
             } catch (error) {
-                authMessageEl.textContent = `Login failed: ${error.message}`;
-                authMessageEl.classList.add('text-red-500');
-                window.history.replaceState({}, document.title, "/");
+                showMessage(`Login failed: ${error.message}`, 'error');
+                loginSection.classList.remove('hidden');
+                dashboardSection.classList.add('hidden');
             }
-        }
-
-        async function fetchUserProfile() {
-            if (!apiToken) return;
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/users/me`, { headers: { 'Authorization': `Bearer ${apiToken}` } });
-                if (!res.ok) throw new Error('Could not fetch user profile.');
-                const user = await res.json();
-                userEmailEl.textContent = user.email;
-                if (user.resume_analysis) {
-                    resumeAnalysisContainer.innerHTML = marked.parse(user.resume_analysis);
-                    resumeAnalysisContainer.classList.remove('hidden');
-                }
-            } catch (error) { console.error("Profile Fetch Error:", error); }
         }
         
         logoutBtn.addEventListener('click', () => {
             apiToken = null;
+            localStorage.removeItem('jri_api_token');
             dashboardSection.classList.add('hidden');
             loginSection.classList.remove('hidden');
+            // Reset UI
             authMessageEl.textContent = '';
-            resultsArea.classList.add('hidden');
-            coursesArea.classList.add('hidden');
-            performanceChartContainer.classList.add('hidden');
+            emailInput.value = '';
+            if(scoreChart) scoreChart.destroy();
+            showMessage('You have been logged out.');
         });
 
-        // --- DASHBOARD LOGIC ---
+        // --- DASHBOARD INITIALIZATION ---
+        async function initializeDashboard() {
+            if (!apiToken) return;
+            loginSection.classList.add('hidden');
+            dashboardSection.classList.remove('hidden');
+            try {
+                const user = await fetchUserProfile();
+                if (user.resume_analysis) {
+                    resumeAnalysisContainer.innerHTML = marked.parse(user.resume_analysis);
+                    resumeAnalysisContainer.classList.remove('hidden');
+                }
+            } catch (error) {
+                showMessage(`Session expired or invalid: ${error.message}`, 'error');
+                logoutBtn.click();
+            }
+        }
+        
+        async function fetchUserProfile() {
+            const user = await apiFetch('/users/me');
+            userEmailEl.textContent = user.email;
+            return user;
+        }
+
+        // --- PAGE LOAD LOGIC ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const magicToken = urlParams.get('token');
+            const storedToken = localStorage.getItem('jri_api_token');
+
+            if (magicToken) {
+                // Clear the token from URL for security
+                window.history.replaceState({}, document.title, window.location.pathname);
+                loginWithMagicToken(magicToken);
+            } else if (storedToken) {
+                apiToken = storedToken;
+                initializeDashboard();
+            } else {
+                loginSection.classList.remove('hidden');
+            }
+        });
+
+        // --- ASSESSMENT LOGIC ---
         startAssessmentBtn.addEventListener('click', async () => {
             startAssessmentBtn.textContent = 'Loading...';
             startAssessmentBtn.disabled = true;
             try {
-                const res = await fetch(`${API_BASE_URL}/api/assessment/questions`, { headers: { 'Authorization': `Bearer ${apiToken}` } });
-                if (!res.ok) throw new Error('Failed to fetch questions.');
-                renderQuestions(await res.json());
+                const questions = await apiFetch('/assessment/questions');
+                renderQuestions(questions);
                 questionsContainer.classList.remove('hidden');
                 submitAssessmentBtn.classList.remove('hidden');
                 startAssessmentBtn.classList.add('hidden');
                 resultsArea.classList.add('hidden');
                 coursesArea.classList.add('hidden');
-            } catch (error) { 
-                authMessageEl.textContent = error.message;
-                authMessageEl.classList.add('text-red-500');
-            } 
-            finally {
+            } catch (error) {
+                showMessage(error.message, 'error');
+            } finally {
                 startAssessmentBtn.textContent = 'Start Assessment';
                 startAssessmentBtn.disabled = false;
             }
@@ -285,19 +365,11 @@
                 optionsList.className = 'space-y-2';
                 
                 const validOptions = q.options.filter(opt => opt.text && opt.text.trim() !== '' && opt.text.trim().toLowerCase() !== 'nan');
-
-                if (validOptions.length > 1) { 
-                    validOptions.forEach(opt => {
-                        const optionEl = document.createElement('div');
-                        optionEl.innerHTML = `<label class="flex items-center p-2 hover:bg-gray-400 cursor-pointer text-lg"><input type="radio" name="question-${q.id}" value="${opt.id}" class="mr-3 w-5 h-5" data-question-id="${q.id}"><span>${opt.text}</span></label>`;
-                        optionsList.appendChild(optionEl);
-                    });
-                } else if (validOptions.length === 1) { 
-                    const opt = validOptions[0]; 
-                    const inputEl = document.createElement('div');
-                    inputEl.innerHTML = `<input type="text" placeholder="Your answer..." class="w-full p-2 bg-white border-2 border-gray-500 text-black text-lg" name="question-${q.id}" data-option-id="${opt.id}" data-question-id="${q.id}">`;
-                    optionsList.appendChild(inputEl);
-                }
+                validOptions.forEach(opt => {
+                    const optionEl = document.createElement('div');
+                    optionEl.innerHTML = `<label class="flex items-center p-2 hover:bg-gray-400 cursor-pointer text-lg"><input type="radio" name="question-${q.id}" value="${opt.id}" class="mr-3 w-5 h-5" data-question-id="${q.id}"><span>${opt.text}</span></label>`;
+                    optionsList.appendChild(optionEl);
+                });
                 questionEl.appendChild(optionsList);
                 questionsContainer.appendChild(questionEl);
             });
@@ -308,32 +380,25 @@
                 question_id: parseInt(input.dataset.questionId),
                 selected_option_id: parseInt(input.value)
             }));
-            
             if (answers.length === 0) {
-                authMessageEl.textContent = 'Please answer at least one question.';
-                authMessageEl.classList.add('text-red-500');
+                showMessage('Please answer at least one question.', 'error');
                 return;
             }
-
             submitAssessmentBtn.textContent = 'Analyzing...';
             submitAssessmentBtn.disabled = true;
             try {
-                const res = await fetch(`${API_BASE_URL}/api/assessment/submit`, {
+                const result = await apiFetch('/assessment/submit', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiToken}` },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ answers })
                 });
-                if (!res.ok) throw new Error((await res.json()).detail || 'Failed to submit assessment.');
-                const result = await res.json();
                 displayResults(result);
                 questionsContainer.classList.add('hidden');
                 submitAssessmentBtn.classList.add('hidden');
                 startAssessmentBtn.classList.remove('hidden');
-            } catch (error) { 
-                authMessageEl.textContent = error.message;
-                authMessageEl.classList.add('text-red-500');
-            } 
-            finally {
+            } catch (error) {
+                showMessage(error.message, 'error');
+            } finally {
                 submitAssessmentBtn.textContent = 'Complete Quest';
                 submitAssessmentBtn.disabled = false;
             }
@@ -343,13 +408,8 @@
             finalScoreEl.textContent = result.score;
             aiAnalysisEl.innerHTML = marked.parse(result.analysis || "No analysis provided.");
             resultsArea.classList.remove('hidden');
-            if (result.course_suggestions) {
-                try {
-                    renderCourseSuggestions(JSON.parse(result.course_suggestions));
-                } catch(e) {
-                    console.error("Could not parse course suggestions:", e);
-                    coursesArea.classList.add('hidden');
-                }
+            if (result.suggestions) {
+                renderCourseSuggestions(JSON.parse(result.suggestions));
             }
         }
 
@@ -362,124 +422,83 @@
             suggestions.forEach(course => {
                 const card = document.createElement('div');
                 card.className = 'flashcard-pixel';
-                const title = course.course_name || course.title || "Untitled Course";
-                const platform = course.platform || "Unknown Platform";
-                const reason = course.reason || course.description || "No description available.";
                 card.innerHTML = `
-                    <h4 class="font-bold text-xl mb-2">${title}</h4>
-                    <p class="text-sm text-gray-600 mb-2 font-bold">${platform}</p>
-                    <p class="text-gray-800 text-base">${reason}</p>
-                `;
+                    <h4 class="font-bold text-xl mb-2">${course.title}</h4>
+                    <p class="text-sm text-gray-600 mb-2 font-bold">${course.platform}</p>
+                    <p class="text-gray-800 text-base">${course.description}</p>`;
                 courseSuggestionsContainer.appendChild(card);
             });
             coursesArea.classList.remove('hidden');
         }
 
-        async function fetchHistory() {
-            if (!apiToken) return null;
-            try {
-                const res = await fetch(`${API_BASE_URL}/api/assessment/history`, { headers: { 'Authorization': `Bearer ${apiToken}` } });
-                if (!res.ok) throw new Error('Could not fetch history.');
-                return await res.json();
-            } catch(error) { 
-                console.error(error);
-                return null; 
-            }
-        }
-
+        // --- PERFORMANCE HISTORY ---
         viewPerformanceBtn.addEventListener('click', async () => {
-            const isHidden = performanceChartContainer.classList.toggle('hidden');
-            if (isHidden) return;
-            
-            viewPerformanceBtn.disabled = true;
-            performanceChartContainer.innerHTML = '<p class="text-center">Loading stats...</p>';
-            
-            const history = await fetchHistory();
-            
-            if (history && history.length > 0) {
-                performanceChartContainer.innerHTML = `
-                    <div class="grid grid-cols-2 gap-4 mb-4 text-center">
-                        <div class="p-4 bg-gray-300 border-2 border-gray-500"><p class="text-gray-600">High Score</p><p id="highest-score" class="text-3xl font-bold"></p></div>
-                        <div class="p-4 bg-gray-300 border-2 border-gray-500"><p class="text-gray-600">Avg Score</p><p id="average-score" class="text-3xl font-bold"></p></div>
-                    </div>
-                    <canvas id="score-chart"></canvas>
-                `;
-                renderPerformanceDashboard(history);
-            } else if (history) {
-                performanceChartContainer.innerHTML = '<p class="text-center">Complete an assessment to see your stats.</p>';
+            if (performanceChartContainer.classList.contains('hidden')) {
+                try {
+                    const history = await apiFetch('/assessment/history');
+                    renderPerformanceChart(history);
+                    performanceChartContainer.classList.remove('hidden');
+                    viewPerformanceBtn.textContent = 'Hide Dashboard';
+                } catch (error) {
+                    showMessage(error.message, 'error');
+                }
             } else {
-                performanceChartContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load performance data.</p>`;
+                performanceChartContainer.classList.add('hidden');
+                viewPerformanceBtn.textContent = 'View Dashboard';
             }
-            viewPerformanceBtn.disabled = false;
         });
 
-        function renderPerformanceDashboard(history) {
-            const sortedHistory = history.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-            const labels = sortedHistory.map(item => new Date(item.created_at).toLocaleDateString());
-            const scores = sortedHistory.map(item => item.score);
-            
-            document.getElementById('highest-score').textContent = Math.max(...scores);
-            document.getElementById('average-score').textContent = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
+        function renderPerformanceChart(history) {
+            if (!history || history.length === 0) {
+                highestScoreEl.textContent = 'N/A';
+                averageScoreEl.textContent = 'N/A';
+                return;
+            }
+            const scores = history.map(h => h.score);
+            const labels = history.map((h, i) => `Game ${i + 1}`);
+            highestScoreEl.textContent = Math.max(...scores);
+            averageScoreEl.textContent = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
 
             const ctx = document.getElementById('score-chart').getContext('2d');
-            if (scoreChart) scoreChart.destroy();
+            if (scoreChart) {
+                scoreChart.destroy();
+            }
             scoreChart = new Chart(ctx, {
                 type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'EXP Gained',
-                        data: scores,
-                        borderColor: '#5a8bd1',
-                        backgroundColor: 'rgba(90, 139, 209, 0.2)',
-                        fill: true,
-                        tension: 0.1
-                    }]
-                },
-                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                data: { labels, datasets: [{ label: 'Score per Game', data: scores, backgroundColor: 'rgba(90, 139, 209, 0.5)', borderColor: '#5a8bd1', borderWidth: 3, tension: 0.1 }] },
+                options: { scales: { y: { beginAtZero: true } } }
             });
         }
 
+        // --- RESUME ANALYSIS ---
         analyzeResumeBtn.addEventListener('click', async () => {
             const file = resumeFileInput.files[0];
             if (!file) {
-                resumeErrorEl.textContent = 'Please select a file first.';
-                resumeErrorEl.classList.remove('hidden');
+                showMessage('Please select a file to analyze.', 'error');
                 return;
             }
-            
-            const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-            if (!allowedTypes.includes(file.type)) {
-                resumeErrorEl.textContent = 'Only PDF and DOCX files are allowed.';
-                resumeErrorEl.classList.remove('hidden');
-                return;
-            }
-
+            analyzeResumeBtn.disabled = true;
+            analyzeResumeBtn.textContent = 'Analyzing...';
+            resumeErrorEl.classList.add('hidden');
             const formData = new FormData();
             formData.append('file', file);
-            analyzeResumeBtn.textContent = 'Analyzing...';
-            analyzeResumeBtn.disabled = true;
-            resumeErrorEl.classList.add('hidden');
-            resumeAnalysisContainer.classList.add('hidden');
             try {
-                const res = await fetch(`${API_BASE_URL}/api/users/me/resume`, {
+                const result = await apiFetch('/users/me/resume', {
                     method: 'POST',
-                    headers: { 'Authorization': `Bearer ${apiToken}` },
-                    body: formData
+                    body: formData // No Content-Type header needed, browser sets it
                 });
-                if (!res.ok) throw new Error((await res.json()).detail || 'Failed to analyze resume.');
-                const result = await res.json();
-                resumeAnalysisContainer.innerHTML = marked.parse(result.resume_analysis || 'No analysis provided.');
+                resumeAnalysisContainer.innerHTML = marked.parse(result.resume_analysis);
                 resumeAnalysisContainer.classList.remove('hidden');
-            } catch (error) { 
-                resumeErrorEl.textContent = `Error: ${error.message}`;
+                showMessage('Resume analyzed successfully!');
+            } catch (error) {
+                resumeErrorEl.textContent = error.message;
                 resumeErrorEl.classList.remove('hidden');
-            }
-            finally {
-                analyzeResumeBtn.textContent = 'Analyze Scroll';
+                showMessage(error.message, 'error');
+            } finally {
                 analyzeResumeBtn.disabled = false;
+                analyzeResumeBtn.textContent = 'Analyze Scroll';
             }
         });
     </script>
 </body>
-</ht
+</html>
