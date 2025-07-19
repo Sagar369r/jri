@@ -11,7 +11,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from dotenv import load_dotenv, find_dotenv
 
-# These are needed for the router to interact with the database and schemas
+# These are needed for the router and dependencies
 import crud, models, schemas, email_service, user_logger
 from database import SessionLocal
 
@@ -56,7 +56,6 @@ def verify_magic_link_token(plain_token: str, hashed_token: str) -> bool:
     return pwd_context.verify(plain_token, hashed_token)
 
 # --- FastAPI Router ---
-# ✅ This creates the router as you specified.
 router = APIRouter()
 
 # Dependency to get a DB session for the router
@@ -66,6 +65,19 @@ def get_db():
         yield db
     finally:
         db.close()
+
+# ✅ FIX: The get_current_user function is now correctly placed in this file.
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    email = verify_access_token(token, credentials_exception)
+    user = crud.get_user_by_email(db, email=email)
+    if user is None:
+        raise credentials_exception
+    return user
 
 # --- API Endpoints for Authentication ---
 
