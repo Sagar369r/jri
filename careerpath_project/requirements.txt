@@ -1,4 +1,5 @@
 fastapi
+passlib[bcrypt]
 uvicorn
 gunicorn
 python-dotenv
