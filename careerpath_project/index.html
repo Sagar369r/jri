@@ -134,10 +134,8 @@
     </div>
 
     <script>
-        // --- CONFIG & STATE ---
-        // ✅ IMPORTANT: Replace this with the real, public URL of your deployed backend.
-        // It must NOT have a slash at the end.
-        const API_BASE_URL = "https://jri-omega.vercel.app"; 
+        // ✅ The API_BASE_URL is a relative path, which works with the vercel.json setup.
+        const API_BASE_URL = ""; 
 
         let apiToken = null;
         let scoreChart = null;
@@ -186,8 +184,8 @@
             authMessageEl.classList.remove('text-red-500', 'text-green-600');
             
             try {
-                // The fetch call now uses the full URL
-                const res = await fetch(`${API_BASE_URL}/auth/magic-link/request`, {
+                // ✅ All fetch calls now correctly use the /api/ prefix.
+                const res = await fetch(`${API_BASE_URL}/api/auth/magic-link/request`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
@@ -208,7 +206,7 @@
             authMessageEl.textContent = 'Verifying magic link...';
             
             try {
-                const res = await fetch(`${API_BASE_URL}/auth/magic-link/login`, {
+                const res = await fetch(`${API_BASE_URL}/api/auth/magic-link/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ token })
@@ -233,7 +231,7 @@
         async function fetchUserProfile() {
             if (!apiToken) return;
             try {
-                const res = await fetch(`${API_BASE_URL}/users/me`, { headers: { 'Authorization': `Bearer ${apiToken}` } });
+                const res = await fetch(`${API_BASE_URL}/api/users/me`, { headers: { 'Authorization': `Bearer ${apiToken}` } });
                 if (!res.ok) throw new Error('Could not fetch user profile.');
                 const user = await res.json();
                 userEmailEl.textContent = user.email;
@@ -259,7 +257,7 @@
             startAssessmentBtn.textContent = 'Loading...';
             startAssessmentBtn.disabled = true;
             try {
-                const res = await fetch(`${API_BASE_URL}/assessment/questions`, { headers: { 'Authorization': `Bearer ${apiToken}` } });
+                const res = await fetch(`${API_BASE_URL}/api/assessment/questions`, { headers: { 'Authorization': `Bearer ${apiToken}` } });
                 if (!res.ok) throw new Error('Failed to fetch questions.');
                 renderQuestions(await res.json());
                 questionsContainer.classList.remove('hidden');
@@ -320,7 +318,7 @@
             submitAssessmentBtn.textContent = 'Analyzing...';
             submitAssessmentBtn.disabled = true;
             try {
-                const res = await fetch(`${API_BASE_URL}/assessment/submit`, {
+                const res = await fetch(`${API_BASE_URL}/api/assessment/submit`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiToken}` },
                     body: JSON.stringify({ answers })
@@ -380,7 +378,7 @@
         async function fetchHistory() {
             if (!apiToken) return null;
             try {
-                const res = await fetch(`${API_BASE_URL}/assessment/history`, { headers: { 'Authorization': `Bearer ${apiToken}` } });
+                const res = await fetch(`${API_BASE_URL}/api/assessment/history`, { headers: { 'Authorization': `Bearer ${apiToken}` } });
                 if (!res.ok) throw new Error('Could not fetch history.');
                 return await res.json();
             } catch(error) { 
@@ -464,7 +462,7 @@
             resumeErrorEl.classList.add('hidden');
             resumeAnalysisContainer.classList.add('hidden');
             try {
-                const res = await fetch(`${API_BASE_URL}/users/me/resume`, {
+                const res = await fetch(`${API_BASE_URL}/api/users/me/resume`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${apiToken}` },
                     body: formData
