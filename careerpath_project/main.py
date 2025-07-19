@@ -11,14 +11,12 @@ from datetime import datetime
 # Import all local modules
 import crud, models, schemas, auth, ai_analysis, gdrive_service, email_service, user_logger
 from database import SessionLocal, engine
-import load_database # <-- IMPORT YOUR DATA LOADING SCRIPT
+import load_database
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
 
 # --- AUTOMATIC DATABASE POPULATION ---
-# This block runs on server startup. It checks if the database has questions
-# and populates it if it's empty. This removes the need for a premium shell.
 def initialize_database():
     db = SessionLocal()
     try:
@@ -34,7 +32,7 @@ def initialize_database():
     finally:
         db.close()
 
-initialize_database() # <-- RUN THE INITIALIZATION LOGIC
+initialize_database()
 # ------------------------------------
 
 
@@ -51,7 +49,8 @@ origins = [
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_origin_regex="https://jri-omega-.*\.vercel\.app",
+    # FIXED: Using a raw string r"..." to prevent SyntaxWarning
+    allow_origin_regex=r"https://jri-omega-.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -80,8 +79,6 @@ async def get_current_user(token: str = Depends(auth.oauth2_scheme), db: Session
     return user
 
 # --- API ENDPOINTS ---
-# (The rest of your endpoints remain the same)
-
 @app.get("/", tags=["Health Check"])
 def read_root():
     return {"status": "ok", "message": "Welcome to JRI Career World API"}
@@ -224,3 +221,4 @@ async def submit_assessment(
 @app.get("/assessment/history", response_model=List[schemas.Assessment], tags=["Assessment"])
 def get_assessment_history(db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     return db.query(models.Assessment).filter(models.Assessment.owner_id == current_user.id).all()
+
