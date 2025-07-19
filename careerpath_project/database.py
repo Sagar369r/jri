@@ -12,6 +12,7 @@ from dotenv import load_dotenv, find_dotenv # Import find_dotenv
 load_dotenv(find_dotenv())
 
 # Load database configuration from environment variables
+DATABASE_URL = os.getenv("DATABASE_URL")
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_HOST = os.getenv("DB_HOST")
