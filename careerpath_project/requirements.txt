@@ -11,4 +11,5 @@ google-auth-oauthlib
 PyPDF2
 python-docx
 email-validator
+google.generativeai
 python-jose
