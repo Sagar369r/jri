@@ -134,9 +134,8 @@
     </div>
 
     <script>
-        // --- CONFIG & STATE ---
-        // ✅ This is now pointing to your live backend on Render.
-        const API_BASE_URL = "https://jri-uz4s.onrender.com"; 
+        // ✅ The API_BASE_URL is a relative path, which works with the vercel.json setup.
+        const API_BASE_URL = ""; 
 
         let apiToken = null;
         let scoreChart = null;
@@ -185,7 +184,7 @@
             authMessageEl.classList.remove('text-red-500', 'text-green-600');
             
             try {
-                // ✅ This now calls the correct, full URL with the right prefix.
+                // ✅ All fetch calls now correctly use the /api/ prefix.
                 const res = await fetch(`${API_BASE_URL}/api/auth/magic-link/request`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -483,4 +482,4 @@
         });
     </script>
 </body>
-</html>
+</ht
