@@ -3,153 +3,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JRI Career World - Minecraft Edition</title>
-    <link rel="icon" href="https://static.wikia.nocookie.net/minecraft_gamepedia/images/7/7d/Bee.png/revision/latest?cb=20200502032Bee.png">
-
+    <title>JRI Career Development Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
-    
     <style>
-        :root {
-            --mc-stone: #787878; --mc-stone-dark: #505050; --mc-stone-light: #C6C6C6;
-            --mc-dirt: #976B4B; --mc-wood: #89634A; --mc-wood-dark: #5E4633;
-            --mc-green: #55FF55; --mc-red: #FF5555; --mc-blue: #5555FF;
-            --mc-diamond: #55FFFF; --mc-gold: #FFFF55; --mc-iron: #C6C6C6;
-        }
-        body { 
+        body {
             font-family: 'Inter', sans-serif;
-            background-color: #373737;
-            /* FIXED: Using a reliable texture link */
-            background-image: url('https://www.minecraft.net/etc.clientlibs/minecraft/clientlibs/main/resources/img/bg-texture-stone.png'); 
+            background-color: #2a2a2a;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%233c3c3c' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
             color: #ffffff;
         }
-        h1, h2, h3, h4, .btn-pixel { font-family: 'Pixelify Sans', 'sans-serif'; }
-        .mc-ui {
-            background-color: var(--mc-stone-light);
-            border: 4px solid var(--mc-stone-dark);
-            border-top-color: #FFFFFF;
-            border-left-color: #FFFFFF;
-            box-shadow: 0 0 0 4px var(--mc-stone);
-            color: #373737;
-            image-rendering: pixelated;
+        h1, h2, h3, h4, .btn-pixel {
+            font-family: 'Pixelify Sans', sans-serif;
         }
-        .btn-pixel { 
-            background: var(--mc-stone-light);
-            border-width: 4px; border-style: solid; border-color: #FFFFFF var(--mc-stone-dark) var(--mc-stone-dark) #FFFFFF;
-            padding: 0.75rem 1.5rem; color: #373737; font-weight: 700; text-align: center; cursor: pointer;
-            text-shadow: 2px 2px #5050504a; display: inline-flex; align-items: center; justify-content: center;
+        .pixel-card {
+            background-color: rgba(198, 198, 198, 0.9);
+            border: 3px solid #585858;
+            box-shadow: 6px 6px 0px #1a1a1a;
+            padding: 1.5rem;
+            color: #2a2a2a;
         }
-        .btn-pixel:hover:not(:disabled) { filter: brightness(1.1); }
-        .btn-pixel:active:not(:disabled) { border-color: var(--mc-stone-dark) #FFFFFF #FFFFFF var(--mc-stone-dark); }
-        .btn-pixel:disabled { background: var(--mc-stone); color: var(--mc-stone-dark); cursor: not-allowed; }
-
+        .btn-pixel {
+            padding: 0.75rem 1.5rem;
+            font-weight: 700;
+            text-align: center;
+            cursor: pointer;
+            border: 3px solid #2a2a2a;
+            box-shadow: inset -4px -4px 0px 0px rgba(0,0,0,0.25);
+            transition: all 0.1s ease-in-out;
+            text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+        .btn-pixel:disabled {
+            cursor: not-allowed;
+            background-color: #999;
+            opacity: 0.7;
+        }
+        .btn-pixel:active:not(:disabled) {
+            box-shadow: inset 4px 4px 0px 0px rgba(0,0,0,0.25);
+            transform: translateY(4px);
+        }
+        .btn-green { background-color: #76b865; color: white; }
+        .btn-blue { background-color: #5a8bd1; color: white; }
+        .btn-red { background-color: #c74a4a; color: white; }
+        .btn-gray { background-color: #a9a9a9; color: #2a2a2a; }
         .hidden { display: none; }
-        .icon-pixel { width: 32px; height: 32px; image-rendering: pixelated; }
-
-        /* Custom Scrollbar for thematic feel */
-        ::-webkit-scrollbar { width: 16px; }
-        ::-webkit-scrollbar-track { background: var(--mc-stone-dark); }
-        ::-webkit-scrollbar-thumb { background: var(--mc-stone-light); border: 4px solid var(--mc-stone-dark); }
+        .prose h3 { font-size: 1.75rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; border-bottom: 3px solid #585858; padding-bottom: 0.25rem;}
+        .prose ul { list-style-type: none; padding-left: 0; }
+        .prose li { margin-bottom: 0.5rem; position: relative; padding-left: 1.5rem; }
+        .prose li::before { content: '>'; position: absolute; left: 0; top: 0; font-weight: 700; }
+        .flashcard-pixel {
+            background: #e0e0e0;
+            border: 3px solid #585858;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .flashcard-pixel h4, .flashcard-pixel p { word-wrap: break-word; }
+        .icon-pixel { width: 24px; height: 24px; image-rendering: pixelated; }
+        .message-box {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            color: white;
+            z-index: 1000;
+            font-family: 'Pixelify Sans', sans-serif;
+            border: 3px solid #2a2a2a;
+            box-shadow: 6px 6px 0px #1a1a1a;
+        }
+        .message-box.success { background-color: #76b865; }
+        .message-box.error { background-color: #c74a4a; }
     </style>
 </head>
 <body class="text-lg">
 
-    <div id="main-content" class="container mx-auto p-4 md:p-8 max-w-7xl">
-        
-        <div id="login-section" class="mc-ui p-8 max-w-lg mx-auto flex flex-col items-center">
-            <!-- FIXED: Using a reliable image link -->
-            <img src="https://media.tenor.com/mc3yG9kF51AAAAAi/bee-minecraft.gif" alt="Minecraft Bee" class="w-24 h-24 mb-4">
-            <h2 class="text-3xl font-bold mb-2">Welcome to JRI Career World</h2>
-            <p class="mb-6 text-center">Enter your email to join the world.</p>
-            <form id="magic-link-form" class="w-full">
-                <input type="email" id="email-input" placeholder="player@email.com" required class="w-full mb-4 mc-ui !border-stone-dark !p-3 !text-lg !font-['Pixelify_Sans']">
-                <button type="submit" class="btn-pixel w-full">Request Magic Link</button>
-            </form>
-            <p id="auth-message" class="mt-4 font-bold h-6"></p>
-        </div>
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        <header class="text-center mb-12">
+            <h1 class="text-6xl font-bold">JRI Career World</h1>
+            <p class="text-2xl text-gray-300 mt-2">Level Up Your Career!</p>
+        </header>
 
-        <div id="dashboard-section" class="hidden">
-            <div class="mc-ui p-4 mb-8 flex justify-between items-center">
-                <div class="flex items-center gap-4">
-                    <!-- FIXED: Using a reliable image link -->
-                    <img src="https://www.minecraft.net/content/dam/games/minecraft/avatars/Character-Creator-Steve-Avatar.png" alt="Player" class="w-16 h-16">
+        <main id="main-content">
+            <!-- Login Section -->
+            <div id="login-section" class="pixel-card max-w-md mx-auto">
+                <h2 class="text-3xl font-bold mb-4 text-center">Start Game</h2>
+                <p class="mb-6 text-center">Enter your email to receive a magic login link.</p>
+                <div class="space-y-4">
+                    <input type="email" id="email-input" placeholder="player@email.com" class="w-full p-3 border-2 border-gray-500 text-black text-lg">
+                    <button id="request-magic-link-btn" class="btn-pixel btn-green w-full">Send Magic Link</button>
+                </div>
+                <p id="auth-message" class="text-center mt-4 font-bold"></p>
+            </div>
+
+            <!-- Main Dashboard (Hidden by default) -->
+            <div id="dashboard-section" class="hidden">
+                <div class="pixel-card mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
                     <div>
-                        <p class="text-sm text-gray-600">Player:</p>
+                        <p class="text-gray-600">Player:</p>
                         <p id="user-email" class="font-bold text-xl"></p>
                     </div>
-                </div>
-                <button id="logout-btn" class="btn-pixel">Quit World</button>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                <div class="lg:col-span-3 space-y-8">
-                    <div id="assessment-area" class="mc-ui p-6">
-                        <h2 class="text-3xl font-bold mb-4 flex items-center gap-3">
-                            <!-- FIXED: Using a reliable image link -->
-                            <img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/4/44/Map_JE3_BE2.png" class="icon-pixel" alt="Quest Icon">Quest Board
-                        </h2>
-                        <button id="start-assessment-btn" class="btn-pixel w-full text-xl">Accept New Quest</button>
-                        <div id="questions-container" class="mt-6 hidden space-y-6"></div>
-                        <button id="submit-assessment-btn" class="btn-pixel w-full mt-6 hidden">Complete Quest</button>
-                    </div>
-                    <div id="results-area" class="mc-ui p-6 hidden">
-                         <h2 class="text-3xl font-bold mb-4 flex items-center gap-3">
-                           <!-- FIXED: Using a reliable image link -->
-                           <img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/a/a4/Librarian_JE4.png" class="icon-pixel" alt="Librarian Icon">Librarian's Wisdom
-                        </h2>
-                        <div class="flex gap-4">
-                             <!-- FIXED: Using a reliable image link -->
-                            <img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/a/a4/Librarian_JE4.png" alt="Librarian" class="w-24 h-24 hidden sm:block">
-                            <div id="ai-analysis" class="prose max-w-none prose-p:my-2 prose-headings:font-['Pixelify_Sans'] prose-headings:text-stone-800"></div>
-                        </div>
-                    </div>
-                     <div id="courses-area" class="mc-ui p-6 hidden">
-                        <h2 class="text-3xl font-bold mb-4">Enchanted Books (Course Suggestions)</h2>
-                        <div id="course-suggestions-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
-                    </div>
+                    <button id="logout-btn" class="btn-pixel btn-red w-full sm:w-auto">
+                        <svg class="icon-pixel" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4h16v16H4V4z" fill="#FF5555"/><path d="M5 5h14v2H5V5zm0 12h14v2H5v-2zM9 7h6v10H9V7z" fill="#fff"/></svg>
+                        Quit World
+                    </button>
                 </div>
 
-                <div class="lg:col-span-2 space-y-8">
-                    <div id="resume-analyzer-area" class="mc-ui p-6">
-                        <h2 class="text-3xl font-bold mb-4 flex items-center gap-3">
-                           <!-- FIXED: Using a reliable image link -->
-                           <img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/4/4b/Crafting_Table_JE4_BE3.png" class="icon-pixel" alt="Crafting Table Icon">Crafting Table
-                        </h2>
-                        <p class="mb-4 text-sm">Place your Resume Scroll on the table to reveal its enchantments.</p>
-                        <input type="file" id="resume-file-input" class="w-full text-sm file:mr-4 file:py-2 file:px-4 file:btn-pixel" accept=".pdf,.docx">
-                        <button id="analyze-resume-btn" class="btn-pixel w-full mt-4">Analyze Scroll</button>
-                        <div id="resume-analysis-container" class="mt-4 pt-4 border-t-4 border-stone-500 hidden">
-                             </div>
-                    </div>
-                     <div id="performance-dashboard-area" class="mc-ui p-6">
-                        <h2 class="text-3xl font-bold mb-4 flex items-center gap-3">
-                           <!-- FIXED: Using a reliable image link -->
-                           <img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/5/54/Minecart_JE2_BE2.png" class="icon-pixel" alt="Minecart Icon">The Depths (Stats)
-                        </h2>
-                        <!-- FIXED: Using a reliable image link -->
-                        <div id="performance-chart-container" class="mt-4" style="background-image: url('https://static.wikia.nocookie.net/minecraft_gamepedia/images/1/1b/Powered_Rail_JE2_BE2.png'); background-repeat: repeat-x; background-position: bottom; padding-bottom: 20px;">
-                            <canvas id="score-chart"></canvas>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 space-y-8">
+                        <div id="assessment-area" class="pixel-card">
+                            <h2 class="text-3xl font-bold mb-4 flex items-center gap-3">
+                                <svg class="icon-pixel" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 2l-8 8-4-4-6 6v8h8l6-6-4-4 8-8z" fill="#55FFFF"/><path d="M16 4l-6 6-4-4-4 4v4h4l4-4 6-6h-4z" fill="#00AAAA"/></svg>
+                                New Quest
+                            </h2>
+                            <button id="start-assessment-btn" class="btn-pixel btn-green w-full text-xl">Start Assessment</button>
+                            <div id="questions-container" class="mt-6 hidden"></div>
+                            <button id="submit-assessment-btn" class="btn-pixel btn-blue w-full mt-6 hidden">Complete Quest</button>
                         </div>
-                         <div class="mt-4 grid grid-cols-2 gap-4 text-center">
-                            <div class="bg-gray-300 p-2 border-2 border-stone-500"><p class="text-gray-600">High Score</p><p id="highest-score" class="text-3xl font-bold flex items-center justify-center gap-1"></p></div>
-                            <div class="bg-gray-300 p-2 border-2 border-stone-500"><p class="text-gray-600">Avg Score</p><p id="average-score" class="text-3xl font-bold"></p></div>
+
+                        <div id="results-area" class="pixel-card hidden">
+                            <h2 class="text-3xl font-bold mb-4">Quest Results</h2>
+                            <p class="text-xl">Total EXP: <span id="final-score" class="font-bold text-blue-600"></span></p>
+                            <div id="ai-analysis" class="prose max-w-none mt-4 border-t-4 border-gray-500 pt-4"></div>
+                        </div>
+
+                        <div id="courses-area" class="pixel-card hidden">
+                            <h2 class="text-3xl font-bold mb-4">Skill Tomes</h2>
+                            <div id="course-suggestions-container" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-8">
+                         <div id="resume-analyzer-area" class="pixel-card">
+                            <h2 class="text-3xl font-bold mb-4 flex items-center gap-3">
+                                <svg class="icon-pixel" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M6 6h12v12H6V6z" fill="#55FF55"/><path d="M10 10h4v6h-4v-6zM8 8h8v2H8V8zm0 8h8v2H8v-2z" fill="#000"/></svg>
+                                Scroll Analyzer
+                            </h2>
+                            <p class="mb-4 text-sm">Upload your Resume Scroll (PDF or DOCX) to analyze its stats.</p>
+                            <input type="file" id="resume-file-input" class="block w-full text-lg file:mr-4 file:p-2 file:border-2 file:border-gray-500 file:font-bold file:bg-gray-300 hover:file:bg-gray-400" accept=".pdf,.docx">
+                            <button id="analyze-resume-btn" class="btn-pixel btn-blue w-full mt-4">Analyze Scroll</button>
+                            <p id="resume-error" class="text-red-500 mt-2 text-sm hidden"></p>
+                            <div id="resume-analysis-container" class="prose max-w-none mt-4 border-t-4 border-gray-500 pt-4 hidden"></div>
+                        </div>
+                        
+                        <div id="performance-dashboard-area" class="pixel-card">
+                               <h2 class="text-3xl font-bold mb-4 flex items-center gap-3">
+                                <svg class="icon-pixel" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 8h8v2H8V8zm0 4h8v2H8v-2z" fill="#FFC0CB"/><path d="M6 6h12v12H6V6z" fill="#FF81C0"/><path d="M8 4h2v2H8V4zm6 0h2v2h-2V4z" fill="#FFC0CB"/></svg>
+                                Player Stats
+                            </h2>
+                            <button id="view-performance-btn" class="btn-pixel btn-gray w-full">View Dashboard</button>
+                            <div id="performance-chart-container" class="mt-6 hidden">
+                                <div class="grid grid-cols-2 gap-4 mb-4 text-center">
+                                    <div class="p-4 bg-gray-300 border-2 border-gray-500"><p class="text-gray-600">High Score</p><p id="highest-score" class="text-3xl font-bold">0</p></div>
+                                    <div class="p-4 bg-gray-300 border-2 border-gray-500"><p class="text-gray-600">Avg Score</p><p id="average-score" class="text-3xl font-bold">0</p></div>
+                                </div>
+                                <canvas id="score-chart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </main>
+        </main>
+    </div>
+
     <script>
         // --- CONFIGURATION ---
-        const API_BASE_URL = "";
+        const API_BASE_URL = "/api"; // Use relative path for Vercel rewrites
         let apiToken = null;
         let scoreChart = null;
 
-        // --- DOM ELEMENT CACHE ---
+        // --- DOM ELEMENTS ---
         const loginSection = document.getElementById('login-section');
         const dashboardSection = document.getElementById('dashboard-section');
         const userEmailEl = document.getElementById('user-email');
@@ -157,11 +190,10 @@
         const questionsContainer = document.getElementById('questions-container');
         const submitAssessmentBtn = document.getElementById('submit-assessment-btn');
         const resultsArea = document.getElementById('results-area');
+        const finalScoreEl = document.getElementById('final-score');
         const aiAnalysisEl = document.getElementById('ai-analysis');
-        const authMessageEl = document.getElementById('auth-message');
         const logoutBtn = document.getElementById('logout-btn');
-        const magicLinkForm = document.getElementById('magic-link-form');
-        const emailInput = document.getElementById('email-input');
+        const viewPerformanceBtn = document.getElementById('view-performance-btn');
         const performanceChartContainer = document.getElementById('performance-chart-container');
         const highestScoreEl = document.getElementById('highest-score');
         const averageScoreEl = document.getElementById('average-score');
@@ -170,41 +202,70 @@
         const resumeFileInput = document.getElementById('resume-file-input');
         const analyzeResumeBtn = document.getElementById('analyze-resume-btn');
         const resumeAnalysisContainer = document.getElementById('resume-analysis-container');
-        
-        // --- UTILITY ---
+        const resumeErrorEl = document.getElementById('resume-error');
+        const emailInput = document.getElementById('email-input');
+        const requestMagicLinkBtn = document.getElementById('request-magic-link-btn');
+        const authMessageEl = document.getElementById('auth-message');
+
+        // --- UTILITY FUNCTIONS ---
+        function showMessage(message, type = 'success') {
+            const existingMessageBox = document.querySelector('.message-box');
+            if (existingMessageBox) {
+                existingMessageBox.remove();
+            }
+
+            const messageBox = document.createElement('div');
+            messageBox.className = `message-box ${type}`;
+            messageBox.textContent = message;
+            document.body.appendChild(messageBox);
+            setTimeout(() => messageBox.remove(), 4000);
+        }
+
         async function apiFetch(endpoint, options = {}) {
             const headers = { ...options.headers };
-            if (apiToken) headers['Authorization'] = `Bearer ${apiToken}`;
-
-            const response = await fetch(`${API_BASE_URL}/api${endpoint}`, { ...options, headers });
-            
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ detail: `Request failed with status ${response.status}` }));
-                throw new Error(errorData.detail);
+            if (apiToken) {
+                headers['Authorization'] = `Bearer ${apiToken}`;
             }
-            if (response.status === 204 || response.status === 202) return null;
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+                throw new Error(errorData.detail || 'An unknown error occurred.');
+            }
+            // Handle responses that might not have a body (e.g., 202 Accepted)
+            if (response.status === 202 || response.status === 204) {
+                return null;
+            }
             return response.json();
         }
 
-        // --- AUTHENTICATION ---
-        magicLinkForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = emailInput.value;
-            authMessageEl.textContent = 'Sending link...';
+        // --- AUTHENTICATION FLOW ---
+        requestMagicLinkBtn.addEventListener('click', async () => {
+            const email = emailInput.value.trim();
+            if (!email) {
+                showMessage('Please enter a valid email address.', 'error');
+                return;
+            }
+            requestMagicLinkBtn.disabled = true;
+            requestMagicLinkBtn.textContent = 'Sending...';
+            authMessageEl.textContent = '';
             try {
                 await apiFetch('/auth/magic-link/request', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
                 });
-                authMessageEl.textContent = 'Magic link sent! Check your email.';
+                showMessage('Magic link sent! Please check your email.');
+                authMessageEl.textContent = 'A magic link has been sent to your email. Click it to log in.';
             } catch (error) {
-                authMessageEl.textContent = error.message;
+                showMessage(`Error: ${error.message}`, 'error');
+                authMessageEl.textContent = `Failed to send link: ${error.message}`;
+            } finally {
+                requestMagicLinkBtn.disabled = false;
+                requestMagicLinkBtn.textContent = 'Send Magic Link';
             }
         });
 
-        async function loginWithToken(token) {
-            authMessageEl.textContent = 'Verifying magic link...';
+        async function loginWithMagicToken(token) {
             try {
                 const data = await apiFetch('/auth/magic-link/login', {
                     method: 'POST',
@@ -212,11 +273,12 @@
                     body: JSON.stringify({ token })
                 });
                 apiToken = data.access_token;
-                localStorage.setItem('jri_api_token', apiToken); // Persist token
-                window.history.replaceState({}, document.title, "/");
+                localStorage.setItem('jri_api_token', apiToken);
                 await initializeDashboard();
             } catch (error) {
-                authMessageEl.textContent = `Login failed: ${error.message}`;
+                showMessage(`Login failed: ${error.message}`, 'error');
+                loginSection.classList.remove('hidden');
+                dashboardSection.classList.add('hidden');
             }
         }
         
@@ -225,35 +287,55 @@
             localStorage.removeItem('jri_api_token');
             dashboardSection.classList.add('hidden');
             loginSection.classList.remove('hidden');
+            // Reset UI
+            authMessageEl.textContent = '';
+            emailInput.value = '';
+            if(scoreChart) scoreChart.destroy();
+            showMessage('You have been logged out.');
         });
 
-        // --- INITIALIZATION ---
+        // --- DASHBOARD INITIALIZATION ---
         async function initializeDashboard() {
+            if (!apiToken) return;
             loginSection.classList.add('hidden');
             dashboardSection.classList.remove('hidden');
-            
+            try {
+                const user = await fetchUserProfile();
+                if (user.resume_analysis) {
+                    resumeAnalysisContainer.innerHTML = marked.parse(user.resume_analysis);
+                    resumeAnalysisContainer.classList.remove('hidden');
+                }
+            } catch (error) {
+                showMessage(`Session expired or invalid: ${error.message}`, 'error');
+                logoutBtn.click();
+            }
+        }
+        
+        async function fetchUserProfile() {
             const user = await apiFetch('/users/me');
             userEmailEl.textContent = user.email;
-
-            if (user.resume_analysis) {
-                 renderResumeAnalysis(user.resume_analysis);
-            }
-            fetchHistoryAndRenderDashboard();
+            return user;
         }
 
+        // --- PAGE LOAD LOGIC ---
         document.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const magicToken = urlParams.get('token');
             const storedToken = localStorage.getItem('jri_api_token');
 
-            if (magicToken) loginWithToken(magicToken);
-            else if (storedToken) {
+            if (magicToken) {
+                // Clear the token from URL for security
+                window.history.replaceState({}, document.title, window.location.pathname);
+                loginWithMagicToken(magicToken);
+            } else if (storedToken) {
                 apiToken = storedToken;
                 initializeDashboard();
+            } else {
+                loginSection.classList.remove('hidden');
             }
         });
 
-        // --- QUEST / ASSESSMENT LOGIC ---
+        // --- ASSESSMENT LOGIC ---
         startAssessmentBtn.addEventListener('click', async () => {
             startAssessmentBtn.textContent = 'Loading...';
             startAssessmentBtn.disabled = true;
@@ -265,10 +347,10 @@
                 startAssessmentBtn.classList.add('hidden');
                 resultsArea.classList.add('hidden');
                 coursesArea.classList.add('hidden');
-            } catch (error) { 
-                alert(`Error fetching quest: ${error.message}`);
+            } catch (error) {
+                showMessage(error.message, 'error');
             } finally {
-                startAssessmentBtn.textContent = 'Accept New Quest';
+                startAssessmentBtn.textContent = 'Start Assessment';
                 startAssessmentBtn.disabled = false;
             }
         });
@@ -277,52 +359,32 @@
             questionsContainer.innerHTML = '';
             questions.forEach((q, index) => {
                 const questionEl = document.createElement('div');
-                questionEl.className = 'p-4 mc-ui !bg-stone-200';
-                questionEl.dataset.questionId = q.id;
-                questionEl.innerHTML = `<p class="font-bold mb-3 text-xl">${index + 1}. ${q.text}</p>`;
+                questionEl.className = 'mb-6 p-4 border-2 border-gray-500 bg-gray-300';
+                questionEl.innerHTML = `<p class="font-bold mb-2 text-xl">${index + 1}. ${q.text}</p>`;
+                const optionsList = document.createElement('div');
+                optionsList.className = 'space-y-2';
                 
-                const optionsContainer = document.createElement('div');
-                optionsContainer.className = 'space-y-2';
-
-                const validOptions = q.options.filter(opt => opt && opt.text && opt.text.trim().toLowerCase() !== 'nan');
-
-                if (validOptions.length > 1) { // Multiple choice
-                    validOptions.forEach(opt => {
-                        optionsContainer.innerHTML += `<label class="flex items-center p-2 hover:bg-stone-300 cursor-pointer text-lg"><input type="radio" name="question-${q.id}" value="${opt.id}" class="mr-3 w-5 h-5 accent-stone-600"><span>${opt.text}</span></label>`;
-                    });
-                } else if (validOptions.length === 1) { // Text input
-                    const opt = validOptions[0];
-                    optionsContainer.innerHTML = `<input type="text" placeholder="Type your answer..." class="w-full p-2 mc-ui !border-stone-500 !text-lg" data-option-id="${opt.id}">`;
-                }
-                questionEl.appendChild(optionsContainer);
+                const validOptions = q.options.filter(opt => opt.text && opt.text.trim() !== '' && opt.text.trim().toLowerCase() !== 'nan');
+                validOptions.forEach(opt => {
+                    const optionEl = document.createElement('div');
+                    optionEl.innerHTML = `<label class="flex items-center p-2 hover:bg-gray-400 cursor-pointer text-lg"><input type="radio" name="question-${q.id}" value="${opt.id}" class="mr-3 w-5 h-5" data-question-id="${q.id}"><span>${opt.text}</span></label>`;
+                    optionsList.appendChild(optionEl);
+                });
+                questionEl.appendChild(optionsList);
                 questionsContainer.appendChild(questionEl);
             });
         }
 
         submitAssessmentBtn.addEventListener('click', async () => {
-            const answers = [];
-            document.querySelectorAll('[data-question-id]').forEach(qEl => {
-                const questionId = parseInt(qEl.dataset.questionId);
-                const radio = qEl.querySelector('input[type="radio"]:checked');
-                const textInput = qEl.querySelector('input[type="text"]');
-
-                if (radio) {
-                    answers.push({ question_id: questionId, selected_option_id: parseInt(radio.value) });
-                } else if (textInput && textInput.value.trim() !== '') {
-                    answers.push({
-                        question_id: questionId,
-                        selected_option_id: parseInt(textInput.dataset.optionId),
-                        answer_text: textInput.value.trim()
-                    });
-                }
-            });
-
+            const answers = Array.from(document.querySelectorAll('input[type="radio"]:checked')).map(input => ({
+                question_id: parseInt(input.dataset.questionId),
+                selected_option_id: parseInt(input.value)
+            }));
             if (answers.length === 0) {
-                alert('Please answer at least one question.');
+                showMessage('Please answer at least one question.', 'error');
                 return;
             }
-
-            submitAssessmentBtn.textContent = 'Submitting...';
+            submitAssessmentBtn.textContent = 'Analyzing...';
             submitAssessmentBtn.disabled = true;
             try {
                 const result = await apiFetch('/assessment/submit', {
@@ -331,12 +393,11 @@
                     body: JSON.stringify({ answers })
                 });
                 displayResults(result);
-                fetchHistoryAndRenderDashboard(); // Refresh stats
                 questionsContainer.classList.add('hidden');
                 submitAssessmentBtn.classList.add('hidden');
                 startAssessmentBtn.classList.remove('hidden');
-            } catch (error) { 
-                alert(`Error submitting quest: ${error.message}`);
+            } catch (error) {
+                showMessage(error.message, 'error');
             } finally {
                 submitAssessmentBtn.textContent = 'Complete Quest';
                 submitAssessmentBtn.disabled = false;
@@ -344,18 +405,14 @@
         });
 
         function displayResults(result) {
+            finalScoreEl.textContent = result.score;
+            aiAnalysisEl.innerHTML = marked.parse(result.analysis || "No analysis provided.");
             resultsArea.classList.remove('hidden');
-            aiAnalysisEl.innerHTML = marked.parse(result.analysis || "The librarian has no wisdom to share at this time.");
-            
-            try {
-                const suggestions = JSON.parse(result.suggestions || '[]');
-                renderCourseSuggestions(suggestions);
-            } catch (e) {
-                console.error("Could not parse course suggestions:", e);
-                coursesArea.classList.add('hidden');
+            if (result.suggestions) {
+                renderCourseSuggestions(JSON.parse(result.suggestions));
             }
         }
-        
+
         function renderCourseSuggestions(suggestions) {
             if (!suggestions || suggestions.length === 0) {
                 coursesArea.classList.add('hidden');
@@ -364,115 +421,84 @@
             courseSuggestionsContainer.innerHTML = '';
             suggestions.forEach(course => {
                 const card = document.createElement('div');
-                card.className = 'flashcard-pixel !flex-row items-center gap-4';
+                card.className = 'flashcard-pixel';
                 card.innerHTML = `
-                    <!-- FIXED: Using a reliable image link -->
-                    <img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/4/42/Enchanted_Book.gif" alt="Book" class="w-12 h-12">
-                    <div>
-                        <h4 class="font-bold text-xl">${course.course_name || "Enchanted Tome"}</h4>
-                        <p class="text-sm text-gray-600 font-bold">${course.platform || "Unknown"}</p>
-                        <p class="text-gray-800 text-base">${course.reason || ""}</p>
-                    </div>
-                `;
+                    <h4 class="font-bold text-xl mb-2">${course.title}</h4>
+                    <p class="text-sm text-gray-600 mb-2 font-bold">${course.platform}</p>
+                    <p class="text-gray-800 text-base">${course.description}</p>`;
                 courseSuggestionsContainer.appendChild(card);
             });
             coursesArea.classList.remove('hidden');
+        }
+
+        // --- PERFORMANCE HISTORY ---
+        viewPerformanceBtn.addEventListener('click', async () => {
+            if (performanceChartContainer.classList.contains('hidden')) {
+                try {
+                    const history = await apiFetch('/assessment/history');
+                    renderPerformanceChart(history);
+                    performanceChartContainer.classList.remove('hidden');
+                    viewPerformanceBtn.textContent = 'Hide Dashboard';
+                } catch (error) {
+                    showMessage(error.message, 'error');
+                }
+            } else {
+                performanceChartContainer.classList.add('hidden');
+                viewPerformanceBtn.textContent = 'View Dashboard';
+            }
+        });
+
+        function renderPerformanceChart(history) {
+            if (!history || history.length === 0) {
+                highestScoreEl.textContent = 'N/A';
+                averageScoreEl.textContent = 'N/A';
+                return;
+            }
+            const scores = history.map(h => h.score);
+            const labels = history.map((h, i) => `Game ${i + 1}`);
+            highestScoreEl.textContent = Math.max(...scores);
+            averageScoreEl.textContent = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
+
+            const ctx = document.getElementById('score-chart').getContext('2d');
+            if (scoreChart) {
+                scoreChart.destroy();
+            }
+            scoreChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets: [{ label: 'Score per Game', data: scores, backgroundColor: 'rgba(90, 139, 209, 0.5)', borderColor: '#5a8bd1', borderWidth: 3, tension: 0.1 }] },
+                options: { scales: { y: { beginAtZero: true } } }
+            });
         }
 
         // --- RESUME ANALYSIS ---
         analyzeResumeBtn.addEventListener('click', async () => {
             const file = resumeFileInput.files[0];
             if (!file) {
-                alert('Please select a scroll to analyze.');
+                showMessage('Please select a file to analyze.', 'error');
                 return;
             }
-
+            analyzeResumeBtn.disabled = true;
+            analyzeResumeBtn.textContent = 'Analyzing...';
+            resumeErrorEl.classList.add('hidden');
             const formData = new FormData();
             formData.append('file', file);
-            analyzeResumeBtn.textContent = 'Analyzing...';
-            analyzeResumeBtn.disabled = true;
-
             try {
-                const result = await apiFetch('/users/me/resume', { method: 'POST', body: formData });
-                renderResumeAnalysis(result.resume_analysis);
-            } catch (error) { 
-                alert(`Analysis failed: ${error.message}`);
+                const result = await apiFetch('/users/me/resume', {
+                    method: 'POST',
+                    body: formData // No Content-Type header needed, browser sets it
+                });
+                resumeAnalysisContainer.innerHTML = marked.parse(result.resume_analysis);
+                resumeAnalysisContainer.classList.remove('hidden');
+                showMessage('Resume analyzed successfully!');
+            } catch (error) {
+                resumeErrorEl.textContent = error.message;
+                resumeErrorEl.classList.remove('hidden');
+                showMessage(error.message, 'error');
             } finally {
-                analyzeResumeBtn.textContent = 'Analyze Scroll';
                 analyzeResumeBtn.disabled = false;
+                analyzeResumeBtn.textContent = 'Analyze Scroll';
             }
         });
-
-        function renderResumeAnalysis(analysisText) {
-            const analysisHTML = marked.parse(analysisText || 'No analysis available.');
-            const score = (analysisText.match(/diamond/gi) || []).length * 2 + (analysisText.match(/gold/gi) || []).length;
-            let tier = 'Wood';
-            // FIXED: Using reliable image links
-            let tierImg = 'https://static.wikia.nocookie.net/minecraft_gamepedia/images/d/d5/Wooden_Sword_JE2_BE2.png';
-            if (score > 5) { tier = 'Diamond'; tierImg = 'https://static.wikia.nocookie.net/minecraft_gamepedia/images/4/44/Diamond_Sword_JE3_BE3.png'; }
-            else if (score > 2) { tier = 'Gold'; tierImg = 'https://static.wikia.nocookie.net/minecraft_gamepedia/images/d/de/Golden_Sword_JE2_BE2.png'; }
-            
-            resumeAnalysisContainer.innerHTML = `
-                <div class="flex items-center gap-4">
-                    <img src="${tierImg}" alt="${tier} Sword" class="w-24 h-24">
-                    <div>
-                        <h3 class="text-2xl !border-0 !m-0 !p-0">Resume Quality: ${tier} Tier</h3>
-                        <p>Your resume has been analyzed and enchanted.</p>
-                    </div>
-                </div>
-                <div class="mt-4 prose max-w-none">${analysisHTML}</div>
-            `;
-            resumeAnalysisContainer.classList.remove('hidden');
-        }
-
-        // --- PERFORMANCE DASHBOARD ---
-        async function fetchHistoryAndRenderDashboard() {
-            try {
-                const history = await apiFetch('/assessment/history');
-                if (history && history.length > 0) {
-                    renderPerformanceDashboard(history);
-                } else {
-                    performanceChartContainer.innerHTML = '<p class="text-center">Complete a quest to chart your journey.</p>';
-                }
-            } catch (e) {
-                console.error("Could not fetch history", e);
-                performanceChartContainer.innerHTML = '<p class="text-center text-red-500">Could not load journey data.</p>';
-            }
-        }
-
-        function renderPerformanceDashboard(history) {
-            const sortedHistory = history.slice().sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-            const labels = sortedHistory.map(item => new Date(item.created_at).toLocaleDateString());
-            const scores = sortedHistory.map(item => item.score);
-            
-            const maxScore = Math.max(...scores);
-            // FIXED: Using a reliable image link
-            const diamondIcon = `<img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/e/ea/Diamond_JE3_BE3.png" class="icon-pixel !w-8 !h-8" alt="Diamond">`;
-            highestScoreEl.innerHTML = `${maxScore} ${diamondIcon}`;
-            averageScoreEl.textContent = (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1);
-
-            const ctx = document.getElementById('score-chart').getContext('2d');
-            if (scoreChart) scoreChart.destroy();
-            scoreChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'EXP Gained', data: scores,
-                        borderColor: '#55FFFF', backgroundColor: 'rgba(85, 255, 255, 0.2)',
-                        fill: true, tension: 0.1, pointBackgroundColor: '#55FFFF', pointRadius: 5
-                    }]
-                },
-                options: { 
-                    responsive: true, 
-                    plugins: { legend: { display: false } },
-                    scales: { 
-                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.2)'}, ticks: { color: 'white'} },
-                        x: { grid: { color: 'rgba(255,255,255,0.2)'}, ticks: { color: 'white'} }
-                    } 
-                }
-            });
-        }
     </script>
 </body>
 </html>
