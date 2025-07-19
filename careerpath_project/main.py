@@ -151,6 +151,3 @@ async def submit_assessment(
 @app.get("/api/assessment/history", response_model=List[schemas.Assessment])
 def get_assessment_history(db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     return db.query(models.Assessment).filter(models.Assessment.owner_id == current_user.id).all()
-
-# Note: The root path "/" is no longer needed here for the API, 
-# as Vercel will serve index.html directly.
