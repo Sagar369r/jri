@@ -12,7 +12,7 @@ from passlib.context import CryptContext
 from dotenv import load_dotenv, find_dotenv
 
 # These are needed for the router to interact with the database and schemas
-import crud, schemas, email_service, user_logger
+import crud, models, schemas, email_service, user_logger
 from database import SessionLocal
 
 load_dotenv(find_dotenv())
@@ -55,11 +55,11 @@ def create_magic_link_token() -> (str, str):
 def verify_magic_link_token(plain_token: str, hashed_token: str) -> bool:
     return pwd_context.verify(plain_token, hashed_token)
 
-# --- NEW: FastAPI Router ---
-# This creates a router that we can add to our main app.
+# --- FastAPI Router ---
+# ✅ This creates the router as you specified.
 router = APIRouter()
 
-# Dependency to get a DB session
+# Dependency to get a DB session for the router
 def get_db():
     db = SessionLocal()
     try:
