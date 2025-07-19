@@ -24,6 +24,8 @@ app = FastAPI(title="JRI Career World API")
 # CORS Middleware to allow your frontend to connect
 origins = [
     "https://jri-l5ci.vercel.app",
+    "https://jri-omega.vercel.app",
+    "https://jri-sagar369rs-projects.vercel.app",
     "null"  # Important for some local testing scenarios
 ]
 app.add_middleware(
