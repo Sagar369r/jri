@@ -30,7 +30,7 @@ app = FastAPI(
 
 # CORS Middleware
 origins = [
-    "https://your-live-frontend-url.com", # <--- REPLACE THIS URL
+    "https://jri-sagar369rs-projects.vercel.app", # <-- THIS IS THE FIX!
     "http://127.0.0.1:8001",
     "http://localhost:8001",
     "null"
