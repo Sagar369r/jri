@@ -19,10 +19,10 @@ models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="JRI Career World API")
 
-# CORS Middleware to allow your frontend to connect
+# CORS Middleware to allow ONLY your Vercel frontend to connect
 origins = [
-    "https://jri-omega.vercel.app", # Your new frontend URL
-    "https://jri-l5ci.vercel.app",  # Your old frontend URL
+    "https://jri-l5ci.vercel.app",
+    "https://jri-omega.vercel.app", # Added your newer frontend URL
     "null" 
 ]
 app.add_middleware(
@@ -53,10 +53,16 @@ async def get_current_user(token: str = Depends(auth.oauth2_scheme), db: Session
         raise credentials_exception
     return user
 
-# --- API ENDPOINTS ---
-# ✅ All routes are now correctly prefixed with /api/ as per your plan.
+# --- Root Route ---
+# ✅ FIX: Added a root GET endpoint to handle health checks and prevent 404 on the base URL.
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the JRI Career World API!"}
 
-@app.post("/api/auth/magic-link/request", status_code=status.HTTP_202_ACCEPTED)
+
+# --- API ENDPOINTS ---
+
+@app.post("/auth/magic-link/request", status_code=status.HTTP_202_ACCEPTED)
 async def request_magic_link(request: schemas.MagicLinkRequest, db: Session = Depends(get_db)):
     user = crud.get_or_create_user(db, email=request.email)
     user_logger.log_user_email(user.email)
@@ -65,7 +71,7 @@ async def request_magic_link(request: schemas.MagicLinkRequest, db: Session = De
     email_service.send_magic_link(email=request.email, token=plain_token)
     return {"message": "If an account with this email exists, a magic link has been sent."}
 
-@app.post("/api/auth/magic-link/login", response_model=schemas.Token)
+@app.post("/auth/magic-link/login", response_model=schemas.Token)
 async def login_with_magic_link(request: schemas.MagicLinkLogin, db: Session = Depends(get_db)):
     all_tokens = db.query(models.MagicToken).filter(models.MagicToken.is_used == False).all()
     db_token_record = None
@@ -78,11 +84,11 @@ async def login_with_magic_link(request: schemas.MagicLinkLogin, db: Session = D
     access_token = auth.create_access_token(data={"sub": db_token_record.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
-@app.get("/api/users/me", response_model=schemas.User)
+@app.get("/users/me", response_model=schemas.User)
 async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
     return current_user
 
-@app.post("/api/users/me/resume", response_model=schemas.User)
+@app.post("/users/me/resume", response_model=schemas.User)
 async def upload_and_analyze_resume(current_user: schemas.User = Depends(get_current_user), file: UploadFile = File(...), db: Session = Depends(get_db)):
     contents = await file.read()
     filename = file.filename
@@ -105,11 +111,11 @@ async def upload_and_analyze_resume(current_user: schemas.User = Depends(get_cur
         print(f"A Google Drive API error occurred: {e}")
     return crud.update_user_resume_data(db, user_id=current_user.id, text=sanitized_text, analysis=sanitized_analysis)
 
-@app.get("/api/assessment/questions", response_model=List[schemas.Question])
+@app.get("/assessment/questions", response_model=List[schemas.Question])
 def read_questions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_questions(db, skip=skip, limit=limit)
 
-@app.post("/api/assessment/submit", response_model=schemas.Assessment)
+@app.post("/assessment/submit", response_model=schemas.Assessment)
 async def submit_assessment(assessment_data: schemas.AssessmentSubmit, db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     total_score, categories_summary, incorrect_answers = 0, {}, []
     for answer_data in assessment_data.answers:
@@ -131,6 +137,6 @@ async def submit_assessment(assessment_data: schemas.AssessmentSubmit, db: Sessi
     email_service.send_assessment_report(email=current_user.email, report_markdown=sanitized_analysis_text, score=total_score)
     return crud.create_assessment(db=db, user_id=current_user.id, score=total_score, answers=assessment_data.answers, analysis=sanitized_analysis_text, suggestions=suggestions_json)
 
-@app.get("/api/assessment/history", response_model=List[schemas.Assessment])
+@app.get("/assessment/history", response_model=List[schemas.Assessment])
 def get_assessment_history(db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     return db.query(models.Assessment).filter(models.Assessment.owner_id == current_user.id).all()
