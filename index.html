@@ -4,6 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JRI Career Development Dashboard</title>
+    
+    <!-- FIX 1: FAVICON -->
+    <!-- I've added this link tag. For this to work, you MUST place your 'favicon.ico' file -->
+    <!-- in a folder named 'public' at the root of your project directory. -->
+    <!-- Vercel will automatically serve files from the 'public' folder. -->
+    <link rel="icon" href="/favicon.ico">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -99,10 +106,10 @@
 
                     <div class="space-y-8">
                         <div id="performance-dashboard-area" class="pixel-card">
-                               <h2 class="text-3xl font-bold mb-4 flex items-center gap-3">
-                                <svg class="icon-pixel" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 8h8v2H8V8zm0 4h8v2H8v-2z" fill="#FFC0CB"/><path d="M6 6h12v12H6V6z" fill="#FF81C0"/><path d="M8 4h2v2H8V4zm6 0h2v2h-2V4z" fill="#FFC0CB"/></svg>
-                                Player Stats
-                            </h2>
+                                <h2 class="text-3xl font-bold mb-4 flex items-center gap-3">
+                                 <svg class="icon-pixel" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 8h8v2H8V8zm0 4h8v2H8v-2z" fill="#FFC0CB"/><path d="M6 6h12v12H6V6z" fill="#FF81C0"/><path d="M8 4h2v2H8V4zm6 0h2v2h-2V4z" fill="#FFC0CB"/></svg>
+                                 Player Stats
+                                </h2>
                             <button id="view-performance-btn" class="btn-pixel btn-gray w-full justify-center">View Dashboard</button>
                             <div id="performance-chart-container" class="mt-6 hidden">
                                 <div class="grid grid-cols-2 gap-4 mb-4 text-center">
@@ -132,7 +139,21 @@
 
     <script>
         // --- CONFIG & STATE ---
-        const API_BASE_URL = "http://127.0.0.1:8000";
+
+        // FIX 2: API URL
+        // The line below was hardcoded to "http://127.0.0.1:8000". This caused the connection error
+        // because your deployed Vercel frontend cannot connect to your local machine.
+        //
+        // ACTION REQUIRED:
+        // 1. Deploy your Python/FastAPI backend to a public hosting service (like Vercel, Render, Railway, etc.).
+        // 2. Get the public URL for that deployed backend (e.g., https://your-api.onrender.com).
+        // 3. Replace the placeholder URL below with your actual public backend URL.
+        //
+        // BEST PRACTICE: Use Vercel Environment Variables. You would set a variable named
+        // `PUBLIC_API_URL` in your Vercel project settings and use that here. For a simple
+        // project without a build step, hardcoding the production URL is a quick fix.
+        const API_BASE_URL = "https://your-backend-api-url.com"; // <-- IMPORTANT: CHANGE THIS!
+
         let apiToken = null;
         let scoreChart = null;
 
@@ -187,7 +208,8 @@
                 });
                 if (!res.ok) throw new Error('Could not send magic link. Please try again later.');
                 
-                authMessageEl.textContent = 'Magic link sent! Please check your terminal for the link.';
+                // In production, the email will be sent, not logged to the terminal.
+                authMessageEl.textContent = 'Magic link sent! Please check your email.';
                 authMessageEl.classList.add('text-green-600');
                 magicLinkForm.reset();
             } catch (error) {
@@ -260,7 +282,11 @@
                 startAssessmentBtn.classList.add('hidden');
                 resultsArea.classList.add('hidden');
                 coursesArea.classList.add('hidden');
-            } catch (error) { alert(error.message); } 
+            } catch (error) { 
+                // Using a custom modal or message element is better than alert() in production apps
+                authMessageEl.textContent = error.message;
+                authMessageEl.classList.add('text-red-500');
+            } 
             finally {
                 startAssessmentBtn.textContent = 'Start Assessment';
                 startAssessmentBtn.disabled = false;
@@ -301,7 +327,11 @@
                 selected_option_id: parseInt(input.value)
             }));
             
-            if (answers.length === 0) return alert('Please answer at least one question.');
+            if (answers.length === 0) {
+                authMessageEl.textContent = 'Please answer at least one question.';
+                authMessageEl.classList.add('text-red-500');
+                return;
+            }
 
             submitAssessmentBtn.textContent = 'Analyzing...';
             submitAssessmentBtn.disabled = true;
@@ -317,7 +347,10 @@
                 questionsContainer.classList.add('hidden');
                 submitAssessmentBtn.classList.add('hidden');
                 startAssessmentBtn.classList.remove('hidden');
-            } catch (error) { alert(error.message); } 
+            } catch (error) { 
+                authMessageEl.textContent = error.message;
+                authMessageEl.classList.add('text-red-500');
+            } 
             finally {
                 submitAssessmentBtn.textContent = 'Complete Quest';
                 submitAssessmentBtn.disabled = false;
@@ -366,7 +399,10 @@
                 const res = await fetch(`${API_BASE_URL}/assessment/history`, { headers: { 'Authorization': `Bearer ${apiToken}` } });
                 if (!res.ok) throw new Error('Could not fetch history.');
                 return await res.json();
-            } catch(error) { return null; }
+            } catch(error) { 
+                console.error(error);
+                return null; 
+            }
         }
 
         viewPerformanceBtn.addEventListener('click', async () => {
@@ -374,9 +410,13 @@
             if (isHidden) return;
             
             viewPerformanceBtn.disabled = true;
-            performanceChartContainer.innerHTML = '<p>Loading stats...</p>';
+            // Clear previous content and show loading state
+            performanceChartContainer.innerHTML = '<p class="text-center">Loading stats...</p>';
+            
             const history = await fetchHistory();
+            
             if (history && history.length > 0) {
+                // Re-create the chart structure before rendering
                 performanceChartContainer.innerHTML = `
                     <div class="grid grid-cols-2 gap-4 mb-4 text-center">
                         <div class="p-4 bg-gray-300 border-2 border-gray-500"><p class="text-gray-600">High Score</p><p id="highest-score" class="text-3xl font-bold"></p></div>
@@ -385,9 +425,11 @@
                     <canvas id="score-chart"></canvas>
                 `;
                 renderPerformanceDashboard(history);
+            } else if (history) {
+                performanceChartContainer.innerHTML = '<p class="text-center">Complete an assessment to see your stats.</p>';
+            } else {
+                performanceChartContainer.innerHTML = `<p class="text-red-500 text-center">Failed to load performance data.</p>`;
             }
-            else if (history) performanceChartContainer.innerHTML = '<p>Complete an assessment to see your stats.</p>';
-            else performanceChartContainer.innerHTML = `<p class="text-red-500">Failed to load data.</p>`;
             viewPerformanceBtn.disabled = false;
         });
 
@@ -421,13 +463,15 @@
         analyzeResumeBtn.addEventListener('click', async () => {
             const file = resumeFileInput.files[0];
             if (!file) {
-                alert('Please select a file first.');
+                resumeErrorEl.textContent = 'Please select a file first.';
+                resumeErrorEl.classList.remove('hidden');
                 return;
             }
             
             const allowedTypes = ['application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
             if (!allowedTypes.includes(file.type)) {
-                alert('Only PDF and DOCX files are allowed.');
+                resumeErrorEl.textContent = 'Only PDF and DOCX files are allowed.';
+                resumeErrorEl.classList.remove('hidden');
                 return;
             }
 
@@ -459,3 +503,5 @@
     </script>
 </body>
 </html>
+```
+
