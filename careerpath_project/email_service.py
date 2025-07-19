@@ -12,7 +12,7 @@ load_dotenv(find_dotenv())
 # --- Configuration ---
 BREVO_API_KEY = os.getenv("BREVO_API_KEY")
 SENDER_EMAIL = os.getenv("SENDER_EMAIL")
-FRONTEND_URL = os.getenv("https://jri-omega.vercel.app", "http://127.0.0.1:8001") 
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://127.0.0.1:8001") 
 
 # --- Brevo API Setup ---
 configuration = sib_api_v3_sdk.Configuration()
