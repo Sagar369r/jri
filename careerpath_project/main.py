@@ -6,13 +6,37 @@ from typing import List
 import os
 import io
 import json
-from datetime import datetime # Needed for token expiration check
+from datetime import datetime
 
 # Import all local modules
 import crud, models, schemas, auth, ai_analysis, gdrive_service, email_service, user_logger
 from database import SessionLocal, engine
+import load_database # <-- IMPORT YOUR DATA LOADING SCRIPT
 
+# Create database tables
 models.Base.metadata.create_all(bind=engine)
+
+# --- AUTOMATIC DATABASE POPULATION ---
+# This block runs on server startup. It checks if the database has questions
+# and populates it if it's empty. This removes the need for a premium shell.
+def initialize_database():
+    db = SessionLocal()
+    try:
+        question_count = db.query(models.Question).count()
+        if question_count == 0:
+            print("--- DATABASE INITIALIZATION ---")
+            print("The 'questions' table is empty. Populating with initial data...")
+            load_database.populate_database(db)
+            print("Database population complete.")
+            print("-----------------------------")
+        else:
+            print(f"Database already contains {question_count} questions. Skipping population.")
+    finally:
+        db.close()
+
+initialize_database() # <-- RUN THE INITIALIZATION LOGIC
+# ------------------------------------
+
 
 app = FastAPI(
     title="JRI Career World API",
@@ -56,6 +80,7 @@ async def get_current_user(token: str = Depends(auth.oauth2_scheme), db: Session
     return user
 
 # --- API ENDPOINTS ---
+# (The rest of your endpoints remain the same)
 
 @app.get("/", tags=["Health Check"])
 def read_root():
@@ -72,36 +97,23 @@ async def request_magic_link(request: schemas.MagicLinkRequest, db: Session = De
 
 @app.post("/auth/magic-link/login", response_model=schemas.Token, tags=["Authentication"])
 async def login_with_magic_link(request: schemas.MagicLinkLogin, db: Session = Depends(get_db)):
-    """
-    FIXED: This function now correctly verifies the magic link token.
-    Instead of trying to re-hash the token, it fetches all potentially valid tokens
-    and uses the `auth.verify_magic_link_token` function to securely check the one
-    provided by the user against the stored hashes. This is compatible with salted
-    hashing libraries like passlib or bcrypt.
-    """
-    # Fetch all tokens that are not used and not expired. This is more efficient.
     valid_tokens = db.query(models.MagicToken).filter(
         models.MagicToken.is_used == False,
         models.MagicToken.expires_at > datetime.utcnow()
     ).all()
 
     db_token_record = None
-    # Loop through the smaller list of valid tokens
     for token_record in valid_tokens:
-        # Use the secure verification function from your auth module
         if auth.verify_magic_link_token(request.token, token_record.token_hash):
-            # If verification succeeds, mark the token as used
             db_token_record = crud.use_magic_token(db, token_hash=token_record.token_hash)
-            break # Exit the loop once the correct token is found and used
+            break
 
-    # If no token was found and verified, raise an error.
     if not db_token_record:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid, expired, or already used magic link.",
         )
 
-    # Create a standard JWT access token for the user session
     access_token = auth.create_access_token(data={"sub": db_token_record.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
@@ -120,7 +132,6 @@ async def upload_and_analyze_resume(
     filename = file.filename
     text = ""
     
-    # It's better to import these libraries only when needed if they are large.
     if filename.endswith(".pdf"):
         try:
             import PyPDF2
