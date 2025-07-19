@@ -1,7 +1,6 @@
 # main.py
 from fastapi import FastAPI, Depends, HTTPException, status, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import os
@@ -18,15 +17,12 @@ from database import SessionLocal, engine
 load_dotenv(find_dotenv())
 models.Base.metadata.create_all(bind=engine)
 
-# The FastAPI app instance
 app = FastAPI(title="JRI Career World API")
 
-# CORS Middleware to allow your frontend to connect
+# CORS Middleware to allow ONLY your Vercel frontend to connect
 origins = [
     "https://jri-l5ci.vercel.app",
-    "https://jri-omega.vercel.app",
-    "https://jri-sagar369rs-projects.vercel.app",
-    "null"  # Important for some local testing scenarios
+    "null" 
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -57,9 +53,9 @@ async def get_current_user(token: str = Depends(auth.oauth2_scheme), db: Session
     return user
 
 # --- API ENDPOINTS ---
-# NOTE: All routes are now prefixed with /api/ to match the vercel.json configuration.
+# NOTE: The "/api" prefixes are REMOVED. The full URL is handled by the frontend.
 
-@app.post("/api/auth/magic-link/request", status_code=status.HTTP_202_ACCEPTED)
+@app.post("/auth/magic-link/request", status_code=status.HTTP_202_ACCEPTED)
 async def request_magic_link(request: schemas.MagicLinkRequest, db: Session = Depends(get_db)):
     user = crud.get_or_create_user(db, email=request.email)
     user_logger.log_user_email(user.email)
@@ -68,7 +64,7 @@ async def request_magic_link(request: schemas.MagicLinkRequest, db: Session = De
     email_service.send_magic_link(email=request.email, token=plain_token)
     return {"message": "If an account with this email exists, a magic link has been sent."}
 
-@app.post("/api/auth/magic-link/login", response_model=schemas.Token)
+@app.post("/auth/magic-link/login", response_model=schemas.Token)
 async def login_with_magic_link(request: schemas.MagicLinkLogin, db: Session = Depends(get_db)):
     all_tokens = db.query(models.MagicToken).filter(models.MagicToken.is_used == False).all()
     db_token_record = None
@@ -77,23 +73,16 @@ async def login_with_magic_link(request: schemas.MagicLinkLogin, db: Session = D
             db_token_record = crud.use_magic_token(db, token_hash=token_record.token_hash)
             break
     if not db_token_record:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired magic link.",
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid or expired magic link.")
     access_token = auth.create_access_token(data={"sub": db_token_record.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
-@app.get("/api/users/me", response_model=schemas.User)
+@app.get("/users/me", response_model=schemas.User)
 async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
     return current_user
 
-@app.post("/api/users/me/resume", response_model=schemas.User)
-async def upload_and_analyze_resume(
-    current_user: schemas.User = Depends(get_current_user),
-    file: UploadFile = File(...),
-    db: Session = Depends(get_db)
-):
+@app.post("/users/me/resume", response_model=schemas.User)
+async def upload_and_analyze_resume(current_user: schemas.User = Depends(get_current_user), file: UploadFile = File(...), db: Session = Depends(get_db)):
     contents = await file.read()
     filename = file.filename
     text = ""
@@ -111,21 +100,16 @@ async def upload_and_analyze_resume(
     sanitized_analysis = analysis_results.replace('\x00', '')
     try:
         gdrive_service.upload_file_to_drive(filename, contents, file.content_type)
-        print(f"Successfully attempted to upload {filename} to Google Drive.")
     except Exception as e:
         print(f"A Google Drive API error occurred: {e}")
     return crud.update_user_resume_data(db, user_id=current_user.id, text=sanitized_text, analysis=sanitized_analysis)
 
-@app.get("/api/assessment/questions", response_model=List[schemas.Question])
+@app.get("/assessment/questions", response_model=List[schemas.Question])
 def read_questions(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_questions(db, skip=skip, limit=limit)
 
-@app.post("/api/assessment/submit", response_model=schemas.Assessment)
-async def submit_assessment(
-    assessment_data: schemas.AssessmentSubmit,
-    db: Session = Depends(get_db),
-    current_user: schemas.User = Depends(get_current_user)
-):
+@app.post("/assessment/submit", response_model=schemas.Assessment)
+async def submit_assessment(assessment_data: schemas.AssessmentSubmit, db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     total_score, categories_summary, incorrect_answers = 0, {}, []
     for answer_data in assessment_data.answers:
         option = crud.get_option(db, option_id=answer_data.selected_option_id)
@@ -143,13 +127,9 @@ async def submit_assessment(
     analysis_text = ai_feedback.get("performance_report", "Analysis not available.")
     suggestions_json = json.dumps(ai_feedback.get("course_suggestions", []))
     sanitized_analysis_text = analysis_text.replace('\x00', '')
-    email_service.send_assessment_report(
-        email=current_user.email, 
-        report_markdown=sanitized_analysis_text, 
-        score=total_score
-    )
+    email_service.send_assessment_report(email=current_user.email, report_markdown=sanitized_analysis_text, score=total_score)
     return crud.create_assessment(db=db, user_id=current_user.id, score=total_score, answers=assessment_data.answers, analysis=sanitized_analysis_text, suggestions=suggestions_json)
 
-@app.get("/api/assessment/history", response_model=List[schemas.Assessment])
+@app.get("/assessment/history", response_model=List[schemas.Assessment])
 def get_assessment_history(db: Session = Depends(get_db), current_user: schemas.User = Depends(get_current_user)):
     return db.query(models.Assessment).filter(models.Assessment.owner_id == current_user.id).all()
