@@ -5,10 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>JRI Career Development Dashboard</title>
     
-    <!-- FIX 1: FAVICON -->
-    <!-- I've added this link tag. For this to work, you MUST place your 'favicon.ico' file -->
-    <!-- in a folder named 'public' at the root of your project directory. -->
-    <!-- Vercel will automatically serve files from the 'public' folder. -->
     <link rel="icon" href="/favicon.ico">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -139,20 +135,8 @@
 
     <script>
         // --- CONFIG & STATE ---
-
-        // FIX 2: API URL
-        // The line below was hardcoded to "http://127.0.0.1:8000". This caused the connection error
-        // because your deployed Vercel frontend cannot connect to your local machine.
-        //
-        // ACTION REQUIRED:
-        // 1. Deploy your Python/FastAPI backend to a public hosting service (like Vercel, Render, Railway, etc.).
-        // 2. Get the public URL for that deployed backend (e.g., https://your-api.onrender.com).
-        // 3. Replace the placeholder URL below with your actual public backend URL.
-        //
-        // BEST PRACTICE: Use Vercel Environment Variables. You would set a variable named
-        // `PUBLIC_API_URL` in your Vercel project settings and use that here. For a simple
-        // project without a build step, hardcoding the production URL is a quick fix.
-        const API_BASE_URL = "https://jri-l5ci.vercel.app"; // <-- IMPORTANT: CHANGE THIS!
+        // The API_BASE_URL is now an empty string. The /api/ prefix is added to each fetch call.
+        const API_BASE_URL = ""; 
 
         let apiToken = null;
         let scoreChart = null;
@@ -201,14 +185,14 @@
             authMessageEl.classList.remove('text-red-500', 'text-green-600');
             
             try {
-                const res = await fetch(`${API_BASE_URL}/auth/magic-link/request`, {
+                // All fetch calls now include /api/ at the start of the path
+                const res = await fetch(`${API_BASE_URL}/api/auth/magic-link/request`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
                 });
                 if (!res.ok) throw new Error('Could not send magic link. Please try again later.');
                 
-                // In production, the email will be sent, not logged to the terminal.
                 authMessageEl.textContent = 'Magic link sent! Please check your email.';
                 authMessageEl.classList.add('text-green-600');
                 magicLinkForm.reset();
@@ -223,7 +207,7 @@
             authMessageEl.textContent = 'Verifying magic link...';
             
             try {
-                const res = await fetch(`${API_BASE_URL}/auth/magic-link/login`, {
+                const res = await fetch(`${API_BASE_URL}/api/auth/magic-link/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ token })
@@ -248,7 +232,7 @@
         async function fetchUserProfile() {
             if (!apiToken) return;
             try {
-                const res = await fetch(`${API_BASE_URL}/users/me`, { headers: { 'Authorization': `Bearer ${apiToken}` } });
+                const res = await fetch(`${API_BASE_URL}/api/users/me`, { headers: { 'Authorization': `Bearer ${apiToken}` } });
                 if (!res.ok) throw new Error('Could not fetch user profile.');
                 const user = await res.json();
                 userEmailEl.textContent = user.email;
@@ -274,7 +258,7 @@
             startAssessmentBtn.textContent = 'Loading...';
             startAssessmentBtn.disabled = true;
             try {
-                const res = await fetch(`${API_BASE_URL}/assessment/questions`, { headers: { 'Authorization': `Bearer ${apiToken}` } });
+                const res = await fetch(`${API_BASE_URL}/api/assessment/questions`, { headers: { 'Authorization': `Bearer ${apiToken}` } });
                 if (!res.ok) throw new Error('Failed to fetch questions.');
                 renderQuestions(await res.json());
                 questionsContainer.classList.remove('hidden');
@@ -283,7 +267,6 @@
                 resultsArea.classList.add('hidden');
                 coursesArea.classList.add('hidden');
             } catch (error) { 
-                // Using a custom modal or message element is better than alert() in production apps
                 authMessageEl.textContent = error.message;
                 authMessageEl.classList.add('text-red-500');
             } 
@@ -336,7 +319,7 @@
             submitAssessmentBtn.textContent = 'Analyzing...';
             submitAssessmentBtn.disabled = true;
             try {
-                const res = await fetch(`${API_BASE_URL}/assessment/submit`, {
+                const res = await fetch(`${API_BASE_URL}/api/assessment/submit`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiToken}` },
                     body: JSON.stringify({ answers })
@@ -396,7 +379,7 @@
         async function fetchHistory() {
             if (!apiToken) return null;
             try {
-                const res = await fetch(`${API_BASE_URL}/assessment/history`, { headers: { 'Authorization': `Bearer ${apiToken}` } });
+                const res = await fetch(`${API_BASE_URL}/api/assessment/history`, { headers: { 'Authorization': `Bearer ${apiToken}` } });
                 if (!res.ok) throw new Error('Could not fetch history.');
                 return await res.json();
             } catch(error) { 
@@ -410,13 +393,11 @@
             if (isHidden) return;
             
             viewPerformanceBtn.disabled = true;
-            // Clear previous content and show loading state
             performanceChartContainer.innerHTML = '<p class="text-center">Loading stats...</p>';
             
             const history = await fetchHistory();
             
             if (history && history.length > 0) {
-                // Re-create the chart structure before rendering
                 performanceChartContainer.innerHTML = `
                     <div class="grid grid-cols-2 gap-4 mb-4 text-center">
                         <div class="p-4 bg-gray-300 border-2 border-gray-500"><p class="text-gray-600">High Score</p><p id="highest-score" class="text-3xl font-bold"></p></div>
@@ -482,7 +463,7 @@
             resumeErrorEl.classList.add('hidden');
             resumeAnalysisContainer.classList.add('hidden');
             try {
-                const res = await fetch(`${API_BASE_URL}/users/me/resume`, {
+                const res = await fetch(`${API_BASE_URL}/api/users/me/resume`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${apiToken}` },
                     body: formData
@@ -503,5 +484,3 @@
     </script>
 </body>
 </html>
-
-
